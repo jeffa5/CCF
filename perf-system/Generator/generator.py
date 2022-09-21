@@ -2,6 +2,7 @@ import sys
 import argparse
 import pandas as pd
 import fastparquet as fp
+import yaml
 
 REQUEST_CONTENT_TYPE = "Content-Type: application/json"
 REQUEST_LENGTH_TEXT = "Content-Length: "
@@ -41,6 +42,8 @@ def main(argv):
     arg_verb = "POST" #default verb
     arg_iterations = 16
 
+    yaml_input = yaml.safe_load(open("./config.yaml"))
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--path", help="the path for the request", type=str)
     parser.add_argument("-t", "--type", help="the type of the request", type=str)
@@ -53,10 +56,15 @@ def main(argv):
 
     args = parser.parse_args()
 
-    
     gen = Generator()
-    gen.create_df(args.path or arg_path, args.type or arg_type, args.verb or arg_verb, args.rows or arg_iterations, args.file or "",\
-                args.roots_cert or "", args.cert or "", args.key or "")
+
+    #yaml has highest priority, over command line, over provided args
+
+    gen.create_df(args.path or arg_path, args.type or arg_type, args.verb or arg_verb,\
+                yaml_input["configure"]["rows"] or args.rows or arg_iterations, args.file or "",\
+                yaml_input["configure"]["roots-cert"] or args.roots_cert or "",\
+                yaml_input["configure"]["cert"] or args.cert or "",\
+                yaml_input["configure"]["key"] or args.key or "")
     gen.create_parquet()
 
 if __name__ == "__main__":

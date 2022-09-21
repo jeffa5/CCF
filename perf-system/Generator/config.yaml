@@ -1,0 +1,5 @@
+configure:
+  roots-cert: /home/fotisk/CCF/build/service_cert.pem
+  cert: /home/fotisk/CCF/build/user0_cert.pem
+  key: /home/fotisk/CCF/build/user0_privk.pem
+  rows: 30
