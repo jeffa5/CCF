@@ -11,17 +11,20 @@ class Generator():
     def __init__(self):
         self.df = pd.DataFrame(columns=["messageID", "request"])
 
-    def create_df(self, req_path, req_type, req_verb, req_iters):
+    def create_df(self, req_path, req_type, req_verb, req_iters, conf_file, roots_cert, cert_file, key_file):
         """
         Creates a dataframe with the data 
         required for the requests
         """
+        # entering the private file paths as metadata in the start of parquet
+        self.df.loc[0] = [str(0), roots_cert + "#" + cert_file + "#" + key_file] 
+
         for iter in range(req_iters):
             request_message = '{"id": ' + str(iter) + ', "msg": "Send message with id ' + str(iter) + '"}'
 
-            self.df.loc[iter] = [str(iter), req_verb + " " + req_path + " " + req_type + " " \
-                                + REQUEST_CONTENT_TYPE + " " + REQUEST_LENGTH_TEXT + \
-                                str(len(request_message)) + " " + request_message]
+            self.df.loc[iter+1] = [str(iter), req_verb + "$" + req_path + "$" + req_type + "$" \
+                                + REQUEST_CONTENT_TYPE + "$" + REQUEST_LENGTH_TEXT + \
+                                str(len(request_message)) + "$" + request_message]
 
     def create_parquet(self):
         """
@@ -43,11 +46,17 @@ def main(argv):
     parser.add_argument("-t", "--type", help="the type of the request", type=str)
     parser.add_argument("-vr", "--verb", help="the verb that specifies the action to the server")
     parser.add_argument("-r", "--rows", help="the number of request to be created", type=int)
+    parser.add_argument("-f", "--file", help="the path to a .yaml configuration file")
+    parser.add_argument("-rc", "--roots-cert", help="that path a root custom CA file")
+    parser.add_argument("-c", "--cert", help="the path to a certification configuration file")
+    parser.add_argument("-k", "--key", help="the path to the private key file")
+
     args = parser.parse_args()
 
     
     gen = Generator()
-    gen.create_df(args.path or arg_path, args.type or arg_type, args.verb or arg_verb, args.rows or arg_iterations)
+    gen.create_df(args.path or arg_path, args.type or arg_type, args.verb or arg_verb, args.rows or arg_iterations, args.file or "",\
+                args.roots_cert or "", args.cert or "", args.key or "")
     gen.create_parquet()
 
 if __name__ == "__main__":
