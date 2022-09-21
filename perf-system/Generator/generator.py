@@ -20,12 +20,21 @@ class Generator():
         # entering the private file paths as metadata in the start of parquet
         self.df.loc[0] = [str(0), roots_cert + "#" + cert_file + "#" + key_file] 
 
-        for iter in range(req_iters):
-            request_message = '{"id": ' + str(iter) + ', "msg": "Send message with id ' + str(iter) + '"}'
+        if req_verb == "POST":
 
-            self.df.loc[iter+1] = [str(iter), req_verb + "$" + req_path + "$" + req_type + "$" \
-                                + REQUEST_CONTENT_TYPE + "$" + REQUEST_LENGTH_TEXT + \
-                                str(len(request_message)) + "$" + request_message]
+            for iter in range(req_iters):
+                request_message = '{"id": ' + str(iter) + ', "msg": "Send message with id ' + str(iter) + '"}'
+
+                self.df.loc[iter+1] = [str(iter), req_verb + "$" + req_path + "$" + req_type + "$" \
+                                    + REQUEST_CONTENT_TYPE + "$" + REQUEST_LENGTH_TEXT + \
+                                    str(len(request_message)) + "$" + request_message]
+        
+        elif req_verb == "GET":
+            for iter in range(req_iters):
+                self.df.loc[iter+1] = [str(iter), req_verb + "$" + req_path + "$" + req_type + "$" \
+                    + REQUEST_CONTENT_TYPE]
+        
+
 
     def create_parquet(self):
         """
@@ -60,7 +69,8 @@ def main(argv):
 
     #yaml has highest priority, over command line, over provided args
 
-    gen.create_df(args.path or arg_path, args.type or arg_type, args.verb or arg_verb,\
+    gen.create_df(yaml_input["configure"]["path"] or args.path or arg_path, args.type or arg_type,\
+                yaml_input["configure"]["verb"] or args.verb or arg_verb,\
                 yaml_input["configure"]["rows"] or args.rows or arg_iterations, args.file or "",\
                 yaml_input["configure"]["roots-cert"] or args.roots_cert or "",\
                 yaml_input["configure"]["cert"] or args.cert or "",\

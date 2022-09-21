@@ -3,3 +3,7 @@ configure:
   cert: /home/fotisk/CCF/build/user0_cert.pem
   key: /home/fotisk/CCF/build/user0_privk.pem
   rows: 30
+  path: /app/log/private
+  verb: POST
+  # path: /app/log/private?id=1
+  # verb: GET
