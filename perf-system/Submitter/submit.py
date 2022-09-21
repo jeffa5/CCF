@@ -10,19 +10,15 @@ import pandas as pd
 import fastparquet as fp
 import sys
 import time
+import argparse
 
-df = pd.read_parquet('../Generator/requests.parquet', engine='fastparquet')
-df_sends = pd.DataFrame(columns=["messageID", "sendTime"])
-df_receives = pd.DataFrame(columns=["messageID", "receiveTime", "rawResponse"])
 
-async def read():
-    certificates = df.iloc[0]["request"].split("#")
-    print(certificates[0])
-    sslcontext = ssl.create_default_context(cafile=certificates[0])
-    sslcontext.load_cert_chain(certificates[1], certificates[2])
+async def read(roots_cert, cert, key, df, df_sends, df_receives):
+    sslcontext = ssl.create_default_context(cafile=roots_cert)
+    sslcontext.load_cert_chain(cert, key)
 
     start = time.time()
-    for i, r in df.iloc[1:].iterrows():
+    for i, r in df.iloc[:].iterrows():
         async with aiohttp.ClientSession() as session:  
             
             req = r["request"].split("$")
@@ -44,4 +40,23 @@ async def read():
     fp.write("./sends.parquet", df_sends)
     fp.write("./receives.parquet", df_receives)
 
-asyncio.run(read())
+
+
+def main(argv):
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-rc", "--roots-cert", help="that path a root custom CA file")
+    parser.add_argument("-c", "--cert", help="the path to a certification configuration file")
+    parser.add_argument("-k", "--key", help="the path to the private key file")
+
+    args = parser.parse_args()
+    
+    df = pd.read_parquet('../Generator/requests.parquet', engine='fastparquet')
+    df_sends = pd.DataFrame(columns=["messageID", "sendTime"])
+    df_receives = pd.DataFrame(columns=["messageID", "receiveTime", "rawResponse"])
+    print (args.roots_cert)
+    asyncio.run(read(args.roots_cert or "", args.cert or "",\
+                args.key or "", df, df_sends, df_receives))
+
+if __name__ == "__main__":
+    main(sys.argv)
