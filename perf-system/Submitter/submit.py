@@ -17,7 +17,6 @@ async def read(roots_cert, cert, key, df, df_sends, df_receives):
     sslcontext = ssl.create_default_context(cafile=roots_cert)
     sslcontext.load_cert_chain(cert, key)
 
-    start = time.time()
     for i, r in df.iloc[:].iterrows():
         async with aiohttp.ClientSession() as session:  
             
@@ -33,9 +32,6 @@ async def read(roots_cert, cert, key, df, df_sends, df_receives):
                     t = await resp.text()
                     df_receives.loc[i-1] = [i, time.time(), resp.url.scheme + str(resp.version.major) + str(resp.version.minor) +\
                                             "$" + str(resp.status) + "$" + resp.reason + "$" + str(resp.raw_headers)]
-
-    end = time.time()
-    print(end - start)
     
     fp.write("./sends.parquet", df_sends)
     fp.write("./receives.parquet", df_receives)
@@ -54,7 +50,6 @@ def main(argv):
     df = pd.read_parquet('../Generator/requests.parquet', engine='fastparquet')
     df_sends = pd.DataFrame(columns=["messageID", "sendTime"])
     df_receives = pd.DataFrame(columns=["messageID", "receiveTime", "rawResponse"])
-    print (args.roots_cert)
     asyncio.run(read(args.roots_cert or "", args.cert or "",\
                 args.key or "", df, df_sends, df_receives))
 

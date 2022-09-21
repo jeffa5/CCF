@@ -50,8 +50,6 @@ def main(argv):
     arg_verb = "POST" #default verb
     arg_iterations = 16
 
-    yaml_input = yaml.safe_load(open("./config.yaml"))
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--path", help="the path for the request", type=str)
     parser.add_argument("-t", "--type", help="the type of the request", type=str)
@@ -59,7 +57,10 @@ def main(argv):
     parser.add_argument("-r", "--rows", help="the number of request to be created", type=int)
     parser.add_argument("-f", "--file", help="the path to a .yaml configuration file")
     
+
     args = parser.parse_args()
+
+    yaml_input = yaml.safe_load(open(args.file or "./config.yaml"))
 
     gen = Generator()
 
