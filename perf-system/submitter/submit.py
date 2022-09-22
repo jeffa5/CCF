@@ -1,5 +1,7 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the Apache 2.0 License.
+#WARNING#
+"""
+With cp-ing workspace in CCF build folder you should be able to run submitter here
+"""
 
 import aiohttp
 import asyncio

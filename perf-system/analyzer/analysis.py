@@ -1,6 +1,3 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the Apache 2.0 License.
-
 import pandas as pd
 
 df_sends = pd.read_parquet('../Submitter/sends.parquet', engine='fastparquet')
