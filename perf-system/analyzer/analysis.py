@@ -4,7 +4,7 @@
 Provide metrics based on the requests sent
 """
 
-import pandas as pd
+import pandas as pd  # type: ignore
 
 df_sends = pd.read_parquet("../submitter/sends.parquet", engine="fastparquet")
 df_receives = pd.read_parquet("../submitter/receives.parquet", engine="fastparquet")

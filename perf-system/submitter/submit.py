@@ -8,11 +8,13 @@ import asyncio
 import time
 import ssl
 import argparse
+
 # pylint: disable=import-error
-import aiohttp
-import pandas as pd
+import aiohttp  # type: ignore
+import pandas as pd  # type: ignore
+
 # pylint: disable=import-error
-import fastparquet as fp
+import fastparquet as fp  # type: ignore
 
 
 async def read(certificates, req_df, df_sends, df_receives, duration):

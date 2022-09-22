@@ -5,9 +5,10 @@ Generate requests
 """
 
 import argparse
-import pandas as pd
+import pandas as pd  # type: ignore
+
 # pylint: disable=import-error
-import fastparquet as fp
+import fastparquet as fp  # type: ignore
 
 REQUEST_CONTENT_TYPE = "Content-Type: application/json"
 REQUEST_LENGTH_TEXT = "Content-Length: "
