@@ -22,27 +22,31 @@ def fill_df(host, req_path, req_type, req_verb, req_iters):
     # entering the private file paths as metadata in the start of parquet
 
     if req_verb == "POST":
-        create_post(host, req_path, req_type, req_verb, req_iters)
+        create_post(host, req_path, req_type, req_iters)
 
     elif req_verb == "GET":
-        create_get(host, req_path, req_type, req_verb, req_iters)
+        create_get(host, req_path, req_type, req_iters)
 
-def create_get(host, req_path, req_type, req_verb, req_iters):
+def create_get(host, req_path, req_type, req_iters):
     """
     Generate get queries
     """
+    last_index = len(df.index)
     for request in range(req_iters):
-        df.loc[request] = [str(request), req_verb + "$" + host + "$" + req_path +\
-            "$" + req_type + "$" + REQUEST_CONTENT_TYPE]
+        df.loc[last_index + request] = [str(last_index + request), "GET" + "$" + host +\
+            "$" + req_path + "$" + req_type + "$" + REQUEST_CONTENT_TYPE]
 
-def create_post(host, req_path, req_type, req_verb, req_iters):
+def create_post(host, req_path, req_type, req_iters):
     """
     Generate post queries
     """
+    last_index = len(df.index)
     for request in range(req_iters):
-        request_message = '{"id": ' + str(request) + ', "msg": "Send message with id '\
-                            + str(request) + '"}'
-        df.loc[request] = [str(request), req_verb + "$" + host + "$" + req_path + "$" +\
+        request_message = '{"id": ' + str(last_index + request) +\
+                            ', "msg": "Send message with id ' +\
+                            str(last_index + request) + '"}'
+        df.loc[last_index + request] = [str(last_index + request), "POST" +\
+                            "$" + host + "$" + req_path + "$" +\
                             req_type + "$" + REQUEST_CONTENT_TYPE + "$" +\
                             REQUEST_LENGTH_TEXT + str(len(request_message)) +\
                             "$" + request_message]
@@ -86,7 +90,12 @@ def main():
 
     fill_df( args.host or arg_host, args.path or arg_path, args.type or arg_type, args.verb or\
                   arg_verb, args.rows or arg_iterations)
+    # create_post("https://127.0.0.1:8000", "/app/log/private", "HTTP/1.1", 30)
+    # create_get("https://127.0.0.1:8000", "/app/log/private?id=1", "HTTP/1.1", 20)
+
+    
     create_parquet()
 
 if __name__ == "__main__":
     main()
+
