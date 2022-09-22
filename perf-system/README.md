@@ -32,7 +32,7 @@ In the __CCF/perf-system/Submitter__ there is the submitter component and you ca
 python3 submitter.py -ca /path/to/ca/cert -c /path/to/certificate -k /path/to/private/key
 ```
 In order to run the submitter you need to provide the TLS configuration files:
-- ```-ca, --cert```: Use the specified certificate file to verify the peer
+- ```-ca, --cacert```: Use the specified certificate file to verify the peer
 - ```-c, --cert```: Use the specified client certificate file
 - ```-k, --key```: Private key file
 
