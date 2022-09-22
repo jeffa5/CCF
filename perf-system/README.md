@@ -29,9 +29,14 @@ By default, the generator will create a .parquet file, which is necessary for th
 ## Submitter
 In the __CCF/perf-system/Submitter__ there is the submitter component and you can execute it from this directory with the following command
 ```sh
-python3 submitter.py -rc /path/to/ca/cert -c /path/to/certificate -k /path/to/private/key
+python3 submitter.py -ca /path/to/ca/cert -c /path/to/certificate -k /path/to/private/key
 ```
-In order to run the submitter you need to provide the TLS configuration files. When the submitter is done, there will be two .parquet files generated in this directory
+In order to run the submitter you need to provide the TLS configuration files:
+- ```-ca, --cert```: Use the specified certificate file to verify the peer
+- ```-c, --cert```: Use the specified client certificate file
+- ```-k, --key```: Private key file
+
+When the submitter is done, there will be two .parquet files generated in this directory
 
 ## Analyzer
 The __CCF/perf-system/Analyzer__ directory, contatins the last component which is used to produce some metrics based on the submitted data of the previous component. For this component you need to run the following command from the current directory:
