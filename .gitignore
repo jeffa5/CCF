@@ -37,3 +37,5 @@ workspace/*
 ledger_[0-9]*
 snapshot_[0-9]*
 doc/operations/generated_config.rst
+perf-system/submitter/*.pem
+*.parquet

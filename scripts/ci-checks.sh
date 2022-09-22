@@ -94,9 +94,9 @@ pip install -U wheel black pylint mypy 1>/dev/null
 echo "$CHECK_DELIMITER"
 echo "-- Python format"
 if [ $FIX -ne 0 ]; then
-  git ls-files tests/ python/ scripts/ .cmake-format.py | grep -e '\.py$' | xargs black
+  git ls-files tests/ python/ scripts/ perf-system/ .cmake-format.py | grep -e '\.py$' | xargs black
 else
-  git ls-files tests/ python/ scripts/ .cmake-format.py | grep -e '\.py$' | xargs black --check
+  git ls-files tests/ python/ scripts/ perf-system/ .cmake-format.py | grep -e '\.py$' | xargs black --check
 fi
 
 # Install test dependencies before linting
@@ -105,8 +105,8 @@ pip install -U -r python/requirements.txt 1>/dev/null
 
 echo "$CHECK_DELIMITER"
 echo "-- Python lint"
-git ls-files tests/ python/ | grep -e '\.py$' | xargs python -m pylint
+git ls-files tests/ python/ perf-system/ | grep -e '\.py$' | xargs python -m pylint
 
 echo "$CHECK_DELIMITER"
 echo "-- Python types"
-git ls-files python/ | grep -e '\.py$' | xargs mypy
+git ls-files python/ perf-system/ | grep -e '\.py$' | xargs mypy
