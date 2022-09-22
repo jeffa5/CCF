@@ -93,9 +93,8 @@ def main():
     # create_post("https://127.0.0.1:8000", "/app/log/private", "HTTP/1.1", 30)
     # create_get("https://127.0.0.1:8000", "/app/log/private?id=1", "HTTP/1.1", 20)
 
-    
+
     create_parquet()
 
 if __name__ == "__main__":
     main()
-

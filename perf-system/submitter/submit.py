@@ -4,23 +4,21 @@
 Submit requests
 """
 
-from ast import Num
 import asyncio
 import time
 import ssl
 import argparse
-from urllib import response
 import aiohttp
 import pandas as pd
 import fastparquet as fp
 
 
-async def read(roots_cert, cert, key, req_df, df_sends, df_receives, duration):
+async def read(certificates, req_df, df_sends, df_receives, duration):
     """
     Read the dataframes and call requests submission
     """
-    sslcontext = ssl.create_default_context(cafile=roots_cert)
-    sslcontext.load_cert_chain(cert, key)
+    sslcontext = ssl.create_default_context(cafile=certificates[0])
+    sslcontext.load_cert_chain(certificates[1], certificates[2])
 
     if duration > 0:
         end_time = time.time() + (duration)
@@ -37,9 +35,15 @@ async def read(roots_cert, cert, key, req_df, df_sends, df_receives, duration):
             async with aiohttp.ClientSession() as session:
                 req = req_row["request"].split("$")
                 if req[0]=="POST":
-                    await submit_post(df_sends, i, last_index, session, req, sslcontext, df_receives)
+                    df_sends.loc[i + last_index] = [i + last_index, time.time()]
+                    async with session.post(req[1] + req[2], data = req[6], ssl=sslcontext) as resp:
+                        write_response(resp, df_receives, i, last_index)
+
                 elif req[0]=="GET":
-                    await submit_get(df_sends, i, last_index, session, req, sslcontext, df_receives)
+                    df_sends.loc[i + last_index] = [i + last_index, time.time()]
+                    async with session.get(req[1] + req[2], ssl=sslcontext) as resp:
+                        write_response(resp, df_receives, i, last_index)
+
                 if time.time() > end_time and not run_loop_once:
                     duration_run = False
                     break
@@ -48,18 +52,10 @@ async def read(roots_cert, cert, key, req_df, df_sends, df_receives, duration):
     fp.write("./sends.parquet", df_sends)
     fp.write("./receives.parquet", df_receives)
 
-
-async def submit_post(df_sends, i, last_index, session, req, sslcontext, df_receives):
-    df_sends.loc[i + last_index] = [i + last_index, time.time()]
-    async with session.post(req[1] + req[2], data = req[6], ssl=sslcontext) as resp:
-        write_response(resp, df_receives, i, last_index)
-
-async def submit_get(df_sends, i, last_index, session, req, sslcontext, df_receives):
-    df_sends.loc[i + last_index] = [i + last_index, time.time()]
-    async with session.get(req[1] + req[2], ssl=sslcontext) as resp:
-        write_response(resp, df_receives, i, last_index)
-
 def write_response(resp, df_receives, i, last_index):
+    """
+    Populate the dataframe for receives
+    """
     df_receives.loc[i + last_index] = [i + last_index, time.time(),\
         resp.url.scheme + str(resp.version.major) +\
         str(resp.version.minor) + "$" + str(resp.status) +\
@@ -82,8 +78,8 @@ def main():
     req_df = pd.read_parquet('../generator/requests.parquet', engine='fastparquet')
     df_sends = pd.DataFrame(columns=["messageID", "sendTime"])
     df_receives = pd.DataFrame(columns=["messageID", "receiveTime", "rawResponse"])
-    asyncio.run(read(args.cacert or "", args.cert or "",\
-                args.key or "", req_df, df_sends, df_receives, args.duration or -1))
+    asyncio.run(read([args.cacert or "", args.cert or "",\
+                args.key or ""], req_df, df_sends, df_receives, args.duration or -1))
 
 if __name__ == "__main__":
     main()
