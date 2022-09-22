@@ -23,12 +23,12 @@ async def read(roots_cert, cert, key, df, df_sends, df_receives):
             req = r["request"].split("$")
             if(req[0]=="POST"):
                 df_sends.loc[i-1] = [i, time.time()]
-                async with session.post('https://127.0.0.1:8000' + req[1], data = req[5], ssl=sslcontext) as resp:
+                async with session.post(req[1] + req[2], data = req[6], ssl=sslcontext) as resp:
                     df_receives.loc[i-1] = [i, time.time(), resp.url.scheme + str(resp.version.major) + str(resp.version.minor) +\
                                             "$" + str(resp.status) + "$" + resp.reason + "$" + str(resp.raw_headers)]
             elif (req[0]=="GET"):
                 df_sends.loc[i-1] = [i, time.time()]
-                async with session.get('https://127.0.0.1:8000' + req[1], ssl=sslcontext) as resp:
+                async with session.get(req[1] + req[2], ssl=sslcontext) as resp:
                     t = await resp.text()
                     df_receives.loc[i-1] = [i, time.time(), resp.url.scheme + str(resp.version.major) + str(resp.version.minor) +\
                                             "$" + str(resp.status) + "$" + resp.reason + "$" + str(resp.raw_headers)]

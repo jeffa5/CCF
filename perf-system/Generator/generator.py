@@ -8,7 +8,7 @@ REQUEST_LENGTH_TEXT = "Content-Length: "
 PARQUET_FILE_NAME = "requests.parquet"
 
 
-def create_df(df, req_path, req_type, req_verb, req_iters):
+def create_df(df, host, req_path, req_type, req_verb, req_iters):
     """
     Creates a dataframe with the data 
     required for the requests
@@ -20,13 +20,13 @@ def create_df(df, req_path, req_type, req_verb, req_iters):
         for iter in range(req_iters):
             request_message = '{"id": ' + str(iter) + ', "msg": "Send message with id ' + str(iter) + '"}'
 
-            df.loc[iter] = [str(iter), req_verb + "$" + req_path + "$" + req_type + "$" \
+            df.loc[iter] = [str(iter), req_verb + "$" + host + "$" + req_path + "$" + req_type + "$" \
                                 + REQUEST_CONTENT_TYPE + "$" + REQUEST_LENGTH_TEXT + \
                                 str(len(request_message)) + "$" + request_message]
     
     elif req_verb == "GET":
         for iter in range(req_iters):
-            df.loc[iter] = [str(iter), req_verb + "$" + req_path + "$" + req_type + "$" \
+            df.loc[iter] = [str(iter), req_verb + "$" + host + "$" + req_path + "$" + req_type + "$" \
                 + REQUEST_CONTENT_TYPE]
     
 
@@ -41,16 +41,18 @@ def create_parquet(df):
 
 
 def main(argv):
+    arg_host = "https://127.0.0.1:8000"
     arg_path = "/app/log/private" #default path to request
     arg_type = "HTTP/1.1" #default type
     arg_verb = "POST" #default verb
     arg_iterations = 16
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--path", help="the path for the request", type=str)
-    parser.add_argument("-t", "--type", help="the type of the request", type=str)
-    parser.add_argument("-vr", "--verb", help="the verb that specifies the action to the server")
-    parser.add_argument("-r", "--rows", help="the number of request to be created", type=int)
+    parser.add_argument("-hs", "--host", help="The main host to submit the request. Default `http://localhost:8000`", type=str)
+    parser.add_argument("-p", "--path", help="The realtive path to submit the request. Default `app/log/private`", type=str)
+    parser.add_argument("-t", "--type", help="The type of the HTTP request (Only HTTP/1.1 which is the default is supported for now)", type=str)
+    parser.add_argument("-vr", "--verb", help="The request action. Default `POST` (Only `POST` and `GET` are supported for now)")
+    parser.add_argument("-r", "--rows", help="The number of requests to send. Default `16` ", type=int)
 
     args = parser.parse_args()
 
@@ -58,7 +60,7 @@ def main(argv):
 
     #yaml has highest priority, over command line, over provided args
 
-    create_df(df, args.path or arg_path, args.type or arg_type, args.verb or\
+    create_df(df, args.host or arg_host, args.path or arg_path, args.type or arg_type, args.verb or\
                   arg_verb, args.rows or arg_iterations)
     create_parquet(df)
 
