@@ -18,7 +18,13 @@ Inside the __CCF/perf-system/Generator__ exists the generator component and you 
 ```sh
 python3 generator.py
 ```
-By default, the generator will create a .parquet file, which is necessary for the following component, using the configurations existing in the __config.yml__ file in the same directory. To provide another configuration file please use the option ```-f path/to/yaml/file``` with the same options as in the __config.yml__, otherwise you can edit the __config.yml__ file.
+By default, the generator will create a .parquet file, which is necessary for the following component, using the configurations provided. To provide another configuration file please use the following options:
+
+- ```-hs, --host```: The main host to submit the request. Default `http://localhost:8000`
+- ```-p, --path```: The realtive path to submit the request. Default `app/log/private`
+- ```-t, --type```: The type of the HTTP request (Only HTTP/1.1 which is the default is supported for now)
+- ```-vr, --verb```: The request action. Default `POST` (Only `POST` and `GET` are supported for now)
+- ```-r, --rows```: The number of requests to send. Default `16` 
 
 ## Submitter
 In the __CCF/perf-system/Submitter__ there is the submitter component and you can execute it from this directory with the following command
