@@ -1,5 +1,4 @@
 import pandas as pd
-import time
 
 df_sends = pd.read_parquet('../Submitter/sends.parquet', engine='fastparquet')
 df_receives = pd.read_parquet('../Submitter/receives.parquet', engine='fastparquet')
@@ -10,7 +9,7 @@ time_spent_sum = 0
 
 # the number of rows in both dfs is the same
 for i in range(len(df_sends.index)):
-    # assert df_sends[i]["messageID"] == df_receives[i]["messageID"], "the IDs do not match"
+    assert df_sends.iloc[i]["messageID"] == df_receives.iloc[i]["messageID"], "the IDs do not match"
     req_resp = df_receives.iloc[i]["rawResponse"].split("$")
     if req_resp[2] == "OK":
         successfull_reqs += 1
