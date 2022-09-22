@@ -8,8 +8,10 @@ import asyncio
 import time
 import ssl
 import argparse
+# pylint: disable=import-error
 import aiohttp
 import pandas as pd
+# pylint: disable=import-error
 import fastparquet as fp
 
 

@@ -6,6 +6,7 @@ Generate requests
 
 import argparse
 import pandas as pd
+# pylint: disable=import-error
 import fastparquet as fp
 
 REQUEST_CONTENT_TYPE = "Content-Type: application/json"
