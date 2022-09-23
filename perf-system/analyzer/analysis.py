@@ -16,9 +16,8 @@ def make_analysis(send_file, response_file):
     """
     Produce the analysis results
     """
-
     df_sends = pd.read_parquet(send_file, engine="fastparquet")
-    df_receives = pd.read_parquet(response_file, engine="fastparquet")
+    df_responses = pd.read_parquet(response_file, engine="fastparquet")
 
     successful_reqs = 0
     time_spent_list = []
@@ -27,13 +26,13 @@ def make_analysis(send_file, response_file):
     # the number of rows in both dfs is the same
     for i in range(len(df_sends.index)):
         assert (
-            df_sends.iloc[i]["messageID"] == df_receives.iloc[i]["messageID"]
+            df_sends.iloc[i]["messageID"] == df_responses.iloc[i]["messageID"]
         ), "the IDs do not match"
-        req_resp = df_receives.iloc[i]["rawResponse"].split("$")
+        req_resp = df_responses.iloc[i]["rawResponse"].split("$")
         if req_resp[2] == "OK":
             successful_reqs += 1
         time_spent_list.append(
-            df_receives.iloc[i]["receiveTime"] - df_sends.iloc[i]["sendTime"]
+            df_responses.iloc[i]["receiveTime"] - df_sends.iloc[i]["sendTime"]
         )
 
     successful_percent = successful_reqs / len(df_sends.index) * 100
