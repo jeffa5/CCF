@@ -44,7 +44,7 @@ def make_analysis(send_file, response_file):
         "Total Time (s)",
         "Pass (%)",
         "Fail (%)",
-        "Throughput (req/s)"
+        "Throughput (req/s)",
     ]
     generic_output_table.add_row(
         [
@@ -52,7 +52,7 @@ def make_analysis(send_file, response_file):
             round(time_spent_sum, 1),
             round(successful_percent, 1),
             round(100 - successful_percent, 1),
-            round(len(df_sends.index) / time_spent_sum, 1)
+            round(len(df_sends.index) / time_spent_sum, 1),
         ]
     )
     latency_output_table = PrettyTable()
@@ -62,7 +62,7 @@ def make_analysis(send_file, response_file):
         "Latency 80th (ms)",
         "Latency 90th (ms)",
         "Latency 95th (ms)",
-        "Latency 99th (ms)"
+        "Latency 99th (ms)",
     ]
     latency_output_table.add_row(
         [
@@ -71,7 +71,7 @@ def make_analysis(send_file, response_file):
             round(np.percentile(time_spent_list, 80) * 1000, 3),
             round(np.percentile(time_spent_list, 90) * 1000, 3),
             round(np.percentile(time_spent_list, 95) * 1000, 3),
-            round(np.percentile(time_spent_list, 99) * 1000, 3)
+            round(np.percentile(time_spent_list, 99) * 1000, 3),
         ]
     )
 

@@ -24,11 +24,15 @@ def fill_df(host, req_path, req_type, req_verb, req_iters):
     """
     # entering the private file paths as metadata in the start of parquet
 
+    print("Starting generation of requests")
     if req_verb == "POST":
         create_post(host, req_path, req_type, req_iters)
 
     elif req_verb == "GET":
         create_get(host, req_path, req_type, req_iters)
+    
+    print("Finished generation of requests")
+
 
 
 def create_get(host, req_path, req_type, req_iters):
@@ -88,7 +92,9 @@ def create_parquet():
     Takes the dataframe data and stores them
     in a parquet file in the current directory
     """
+    print("Start writing requests to " + PARQUET_FILE_NAME )
     fp.write(PARQUET_FILE_NAME, df)
+    print("Finished writing requests to " + PARQUET_FILE_NAME )
 
 
 def main():
