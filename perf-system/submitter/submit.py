@@ -41,8 +41,8 @@ async def read(certificates, file_names, duration):
 
     while (end_time > 0 and duration_run) or (end_time < 0 and run_loop_once):
         last_index = len(df_sends.index)
-        for i, req_row in req_df.iloc[:].iterrows():
-            async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession() as session:
+            for i, req_row in req_df.iloc[:].iterrows():
                 req = req_row["request"].split("$")
                 if req[0] == "POST":
                     df_sends.loc[i + last_index] = [i + last_index, time.time()]
@@ -59,7 +59,7 @@ async def read(certificates, file_names, duration):
                 if time.time() > end_time and not run_loop_once:
                     duration_run = False
                     break
-        run_loop_once = False
+            run_loop_once = False
 
     fp.write(file_names[1], df_sends)
     fp.write(file_names[2], df_responses)
