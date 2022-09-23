@@ -38,30 +38,45 @@ def make_analysis(send_file, response_file):
     successful_percent = successful_reqs / len(df_sends.index) * 100
     time_spent_sum = sum(time_spent_list)
 
-    output_table = PrettyTable()
-    output_table.field_names = [
+    generic_output_table = PrettyTable()
+    generic_output_table.field_names = [
         "Total Requests",
         "Total Time (s)",
         "Pass (%)",
         "Fail (%)",
-        "Throughput (req/s)",
-        "Latency (ms)",
-        "Average Latency (ms)",
-        "Latency 95th (ms)",
+        "Throughput (req/s)"
     ]
-    output_table.add_row(
+    generic_output_table.add_row(
         [
             len(df_sends.index),
             round(time_spent_sum, 1),
             round(successful_percent, 1),
             round(100 - successful_percent, 1),
-            round(len(df_sends.index) / time_spent_sum, 1),
-            round(np.percentile(time_spent_list, 50) * 1000, 3),
-            round(time_spent_sum / len(df_sends.index) * 1000, 3),
-            round(np.percentile(time_spent_list, 95) * 1000, 3)
+            round(len(df_sends.index) / time_spent_sum, 1)
         ]
     )
-    print(output_table)
+    latency_output_table = PrettyTable()
+    latency_output_table.field_names = [
+        "Latency (ms)",
+        "Average Latency (ms)",
+        "Latency 80th (ms)",
+        "Latency 90th (ms)",
+        "Latency 95th (ms)",
+        "Latency 99th (ms)"
+    ]
+    latency_output_table.add_row(
+        [
+            round(np.percentile(time_spent_list, 50) * 1000, 3),
+            round(time_spent_sum / len(df_sends.index) * 1000, 3),
+            round(np.percentile(time_spent_list, 80) * 1000, 3),
+            round(np.percentile(time_spent_list, 90) * 1000, 3),
+            round(np.percentile(time_spent_list, 95) * 1000, 3),
+            round(np.percentile(time_spent_list, 99) * 1000, 3)
+        ]
+    )
+
+    print(generic_output_table)
+    print(latency_output_table)
 
 
 def main():
