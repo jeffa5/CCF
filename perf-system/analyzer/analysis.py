@@ -45,8 +45,9 @@ def make_analysis(send_file, response_file):
         "Pass (%)",
         "Fail (%)",
         "Throughput (req/s)",
-        "Latency (s)",
-        "95th (s)",
+        "Latency (ms)",
+        "Average Latency (ms)",
+        "Latency 95th (ms)",
     ]
     output_table.add_row(
         [
@@ -55,8 +56,9 @@ def make_analysis(send_file, response_file):
             round(successful_percent, 1),
             round(100 - successful_percent, 1),
             round(len(df_sends.index) / time_spent_sum, 1),
-            round(time_spent_sum / len(df_sends.index), 3),
-            round(np.percentile(time_spent_list, 95), 3),
+            int(np.percentile(time_spent_list, 50)*1000),
+            int(time_spent_sum / len(df_sends.index)*1000),
+            int(np.percentile(time_spent_list, 95)*1000),
         ]
     )
     print(output_table)
