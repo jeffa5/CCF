@@ -28,6 +28,8 @@ async def read(certificates, file_names, duration):
     sslcontext = ssl.create_default_context(cafile=certificates[0])
     sslcontext.load_cert_chain(certificates[1], certificates[2])
 
+    print("Starting Submission")
+
     if duration > 0:
         end_time = time.time() + (duration)
         run_loop_once = False
@@ -139,6 +141,7 @@ def main():
             args.duration or -1,
         )
     )
+    print("Finished Submission")
 
 
 if __name__ == "__main__":
