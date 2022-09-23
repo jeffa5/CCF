@@ -49,12 +49,14 @@ async def read(certificates, file_names, duration):
                     async with session.post(
                         req[1] + req[2], data=req[6], ssl=sslcontext
                     ) as resp:
-                        write_response(resp, df_responses, i, last_index)
+                        end_time = time.time()
+                        write_response(resp, df_responses, end_time, i, last_index)
 
                 elif req[0] == "GET":
                     df_sends.loc[i + last_index] = [i + last_index, time.time()]
                     async with session.get(req[1] + req[2], ssl=sslcontext) as resp:
-                        write_response(resp, df_responses, i, last_index)
+                        end_time = time.time()
+                        write_response(resp, df_responses, end_time, i, last_index)
 
                 if time.time() > end_time and not run_loop_once:
                     duration_run = False
@@ -65,13 +67,13 @@ async def read(certificates, file_names, duration):
     fp.write(file_names[2], df_responses)
 
 
-def write_response(resp, df_responses, i, last_index):
+def write_response(resp, df_responses, end_time, i, last_index):
     """
     Populate the dataframe for responses
     """
     df_responses.loc[i + last_index] = [
         i + last_index,
-        time.time(),
+        end_time,
         resp.url.scheme
         + str(resp.version.major)
         + str(resp.version.minor)

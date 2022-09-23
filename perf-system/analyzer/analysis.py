@@ -56,9 +56,9 @@ def make_analysis(send_file, response_file):
             round(successful_percent, 1),
             round(100 - successful_percent, 1),
             round(len(df_sends.index) / time_spent_sum, 1),
-            int(np.percentile(time_spent_list, 50) * 1000),
-            int(time_spent_sum / len(df_sends.index) * 1000),
-            int(np.percentile(time_spent_list, 95) * 1000),
+            round(np.percentile(time_spent_list, 50) * 1000, 3),
+            round(time_spent_sum / len(df_sends.index) * 1000, 3),
+            round(np.percentile(time_spent_list, 95) * 1000, 3)
         ]
     )
     print(output_table)
