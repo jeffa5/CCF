@@ -9,17 +9,11 @@ MYPATH = "/app/log/private"
 MYTYPE = "HTTP/1.1"
 
 for i in range(10):
-    DATA = (
-    '{"id": '
-        + str(i)
-        + ', "msg": "built message '
-        + str(i)
-        + '"}'
-    )
+    DATA = '{"id": ' + str(i) + ', "msg": "built message ' + str(i) + '"}'
     create_post(MYHOST, MYPATH, MYTYPE, DATA)
 
 for i in range(10):
     create_get(MYHOST, MYPATH, MYTYPE)
 
 
-create_parquet()
+create_parquet("requests.parquet")

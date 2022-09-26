@@ -15,6 +15,7 @@ def main():
     arg_type = "HTTP/1.1"  # default type
     arg_verb = "POST"  # default verb
     arg_iterations = 16
+    arg_parquet_filename = "requests.parquet"
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -44,6 +45,13 @@ def main():
     parser.add_argument(
         "-r", "--rows", help="The number of requests to send. Default `16` ", type=int
     )
+    parser.add_argument(
+        "-pf",
+        "--parquet_filename",
+        help="Name of the parquet file to store the\
+            generated requests. Default file `./requests.parquet`",
+        type=str,
+    )
 
     args = parser.parse_args()
 
@@ -57,7 +65,7 @@ def main():
     # create_post("https://127.0.0.1:8000", "/app/log/private", "HTTP/1.1", 30)
     # create_get("https://127.0.0.1:8000", "/app/log/private?id=1", "HTTP/1.1", 20)
 
-    create_parquet()
+    create_parquet(args.parquet_filename or arg_parquet_filename)
 
 
 if __name__ == "__main__":

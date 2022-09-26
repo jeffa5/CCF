@@ -11,7 +11,6 @@ import fastparquet as fp  # type: ignore
 
 REQUEST_CONTENT_TYPE = "Content-Type: application/json"
 REQUEST_LENGTH_TEXT = "Content-Length: "
-PARQUET_FILE_NAME = "requests.parquet"
 
 df = pd.DataFrame(columns=["messageID", "request"])
 
@@ -86,11 +85,11 @@ def create_post(host, req_path, req_type, request_message):
     ]
 
 
-def create_parquet():
+def create_parquet(parquet_filename):
     """
     Takes the dataframe data and stores them
     in a parquet file in the current directory
     """
-    print("Start writing requests to " + PARQUET_FILE_NAME)
-    fp.write(PARQUET_FILE_NAME, df)
-    print("Finished writing requests to " + PARQUET_FILE_NAME)
+    print("Start writing requests to " + parquet_filename)
+    fp.write(parquet_filename, df)
+    print("Finished writing requests to " + parquet_filename)
