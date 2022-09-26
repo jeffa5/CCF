@@ -58,6 +58,12 @@ async def read(certificates, file_names, duration):
                         end_time = time.time()
                         write_response(resp, df_responses, end_time, i, last_index)
 
+                elif req[0] == "DELETE":
+                    df_sends.loc[i + last_index] = [i + last_index, time.time()]
+                    async with session.delete(req[1] + req[2], ssl=sslcontext) as resp:
+                        end_time = time.time()
+                        write_response(resp, df_responses, end_time, i, last_index)
+
                 if time.time() > end_time and not run_loop_once:
                     duration_run = False
                     break
