@@ -30,6 +30,9 @@ def fill_df(host, req_path, req_type, req_verb, req_iters, data):
         elif req_verb == "GET":
             create_get(host, req_path, req_type)
 
+        elif req_verb == "DELETE":
+            create_get(host, req_path, req_type)
+
     print("Finished generation of requests")
 
 
@@ -73,6 +76,25 @@ def create_post(host, req_path, req_type, request_message):
         + str(len(request_message))
         + "$"
         + request_message,
+    ]
+
+
+def create_delete(host, req_path, req_type):
+    """
+    Generate delete queries
+    """
+    ind = len(df.index)
+    df.loc[ind] = [
+        str(ind),
+        "DELETE"
+        + "$"
+        + host
+        + "$"
+        + req_path
+        + "$"
+        + req_type
+        + "$"
+        + REQUEST_CONTENT_TYPE,
     ]
 
 

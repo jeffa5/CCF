@@ -13,7 +13,12 @@ for i in range(1000):
     create_post(MYHOST, MYPATH, MYTYPE, DATA)
 
 for i in range(1000):
+    MYPATH += "?id=" + str(i)
     create_get(MYHOST, MYPATH, MYTYPE)
+
+for i in range(1000):
+    MYPATH += "?id=" + str(i)
+    create_delete(MYHOST, MYPATH, MYTYPE)
 
 
 create_parquet("requests.parquet")
