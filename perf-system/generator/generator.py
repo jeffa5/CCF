@@ -15,7 +15,7 @@ REQUEST_LENGTH_TEXT = "Content-Length: "
 df = pd.DataFrame(columns=["messageID", "request"])
 
 
-def fill_df(host, req_path, req_type, req_verb, req_iters):
+def fill_df(host, req_path, req_type, req_verb, req_iters, data):
     """
     Creates a dataframe with the data
     required for the requests
@@ -23,18 +23,9 @@ def fill_df(host, req_path, req_type, req_verb, req_iters):
     # entering the private file paths as metadata in the start of parquet
 
     print("Starting generation of requests")
-    last_index = len(df.index)
     for request in range(req_iters):
-        current_index = last_index + request
         if req_verb == "POST":
-            request_message = (
-                '{"id": '
-                + str(current_index)
-                + ', "msg": "Send message with id '
-                + str(current_index)
-                + '"}'
-            )
-            create_post(host, req_path, req_type, request_message)
+            create_post(host, req_path, req_type, data)
 
         elif req_verb == "GET":
             create_get(host, req_path, req_type)

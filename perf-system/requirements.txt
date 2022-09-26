@@ -1,7 +1,6 @@
-numpy==1.23.2
-pandas==1.4.4
-fastparquet==0.8.3
-PyYAML==5.3.1
-aiohttp==3.8.1
-asyncio==3.4.3
-prettytable==3.4.1
+numpy==1.23.*
+pandas==1.4.*
+fastparquet==0.8.*
+aiohttp==3.*
+asyncio==3.*
+prettytable==3.*

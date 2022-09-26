@@ -16,6 +16,7 @@ def main():
     arg_verb = "POST"  # default verb
     arg_iterations = 16
     arg_parquet_filename = "requests.parquet"
+    arg_data = '{"id": 1, "msg": "Send message with id 1"}'
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -52,6 +53,12 @@ def main():
             generated requests. Default file `./requests.parquet`",
         type=str,
     )
+    parser.add_argument(
+        "-d",
+        "--data",
+        help="A string with the data to be sent in the POST request",
+        type=str,
+    )
 
     args = parser.parse_args()
 
@@ -61,6 +68,7 @@ def main():
         args.type or arg_type,
         args.verb or arg_verb,
         args.rows or arg_iterations,
+        args.data or arg_data,
     )
     # create_post("https://127.0.0.1:8000", "/app/log/private", "HTTP/1.1", 30)
     # create_get("https://127.0.0.1:8000", "/app/log/private?id=1", "HTTP/1.1", 20)
