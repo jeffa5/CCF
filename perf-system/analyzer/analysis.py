@@ -10,6 +10,8 @@ import pandas as pd  # type: ignore
 # pylint: disable=import-error
 from prettytable import PrettyTable  # type: ignore
 import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 
 
 def make_analysis(send_file, response_file):
@@ -21,7 +23,7 @@ def make_analysis(send_file, response_file):
 
     successful_reqs = 0
     time_spent_list = []
-    time_spent_sum = 0
+    ms_time_spent_sum = 0
 
     # the number of rows in both dfs is the same
     for i in range(len(df_sends.index)):
@@ -36,7 +38,8 @@ def make_analysis(send_file, response_file):
         )
 
     successful_percent = successful_reqs / len(df_sends.index) * 100
-    time_spent_sum = sum(time_spent_list)
+    ms_time_spent_list = [x*1000 for x in time_spent_list]
+    ms_time_spent_sum = sum(ms_time_spent_list)
 
     generic_output_table = PrettyTable()
     generic_output_table.field_names = [
@@ -49,10 +52,10 @@ def make_analysis(send_file, response_file):
     generic_output_table.add_row(
         [
             len(df_sends.index),
-            round(time_spent_sum, 1),
+            round(ms_time_spent_sum/1000, 1),
             round(successful_percent, 1),
             round(100 - successful_percent, 1),
-            round(len(df_sends.index) / time_spent_sum, 1),
+            round(len(df_sends.index) / ms_time_spent_sum*1000, 1),
         ]
     )
     latency_output_table = PrettyTable()
@@ -63,20 +66,26 @@ def make_analysis(send_file, response_file):
         "Latency 90th (ms)",
         "Latency 95th (ms)",
         "Latency 99th (ms)",
+        "Latency 99.9th (ms)",
     ]
     latency_output_table.add_row(
         [
-            round(np.percentile(time_spent_list, 50) * 1000, 3),
-            round(time_spent_sum / len(df_sends.index) * 1000, 3),
-            round(np.percentile(time_spent_list, 80) * 1000, 3),
-            round(np.percentile(time_spent_list, 90) * 1000, 3),
-            round(np.percentile(time_spent_list, 95) * 1000, 3),
-            round(np.percentile(time_spent_list, 99) * 1000, 3),
+            round(np.percentile(ms_time_spent_list, 50), 3),
+            round(ms_time_spent_sum / len(df_sends.index), 3),
+            round(np.percentile(ms_time_spent_list, 80), 3),
+            round(np.percentile(ms_time_spent_list, 90), 3),
+            round(np.percentile(ms_time_spent_list, 95), 3),
+            round(np.percentile(ms_time_spent_list, 99), 3),
+            round(np.percentile(ms_time_spent_list, 99.9), 3),
         ]
     )
 
+    time_unit = [x - df_sends['sendTime'][0] + 1 for x in df_sends["sendTime"]]
     print(generic_output_table)
     print(latency_output_table)
+    plt.scatter(time_unit, ms_time_spent_list, s=1)
+    plt.xlabel("Latency_ms")
+    plt.savefig("latency.png")
 
 
 def main():
