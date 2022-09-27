@@ -2,6 +2,7 @@
 #include <chrono>
 #include <iostream>
 #include <curl/curl.h>
+#include <bits/stdc++.h>
 
 size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata) {
 
@@ -12,7 +13,7 @@ size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata) {
     return nmemb;
 }
 
-std::vector<char> request(CURL *curl, const std::string &url)
+std::vector<char> request(CURL *curl, const std::string &url, std::vector<float> &times)
 {
 
 	std::vector<char> response;
@@ -36,22 +37,47 @@ std::vector<char> request(CURL *curl, const std::string &url)
 	const auto start = std::chrono::steady_clock::now();
 	auto res = curl_easy_perform(curl);
 	const auto end = std::chrono::steady_clock::now();
+    std::cout<<res<<std::endl;
+    
 
 	std::chrono::duration<double> elapsed = end - start;
+    times.push_back(elapsed.count());
 	std::cout << "request took: " << elapsed.count() << " s\n";
+    double total;
+    curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total);
+	std::cout << "request from getinfo: " << total << " s\n";
 
-	return response;
+    curl_off_t pretransfer;
+    curl_off_t start_T;
+    curl_easy_getinfo(curl, CURLINFO_PRETRANSFER_TIME_T, &pretransfer);
+    curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME_T, &start_T);
+	std::cout << "request from 2: " << (long)(start_T % 1000000) - (long)(pretransfer % 1000000)<< " "<< (start_T) << " s\n";
+	
+    return response;
 }
 
 int main() {
     curl_global_init(CURL_GLOBAL_ALL);
     CURL *curl = curl_easy_init();
+    std::vector<float> times;
 
     for (int i = 0; i < 20; ++i) {
-        std::vector<char> response = request(curl, "https://127.0.0.1:8000/app/log/private?id=42");
-        std::cout << "response size: " << response.size() << '\n';
+        std::vector<char> response = request(curl, "https://127.0.0.1:8000/app/log/private?id=42", times);
+        // std::cout << "response size: " << response.size() << '\n';
         
     }
+
+    float sum_of_elems;
+
+    for (auto& n : times)
+        sum_of_elems += n;
+
+	std::cout << "requests took: " << sum_of_elems << " s\n";
+
+    sort(times.begin(), times.end());
+
+	std::cout << "latency: " << times[times.size()/2]*1000 << " ms\n";
+
     
     curl_easy_cleanup(curl);
     curl_global_cleanup();
