@@ -38,7 +38,7 @@ def make_analysis(send_file, response_file):
         )
 
     successful_percent = successful_reqs / len(df_sends.index) * 100
-    ms_time_spent_list = [x*1000 for x in time_spent_list]
+    ms_time_spent_list = [x * 1000 for x in time_spent_list]
     ms_time_spent_sum = sum(ms_time_spent_list)
 
     generic_output_table = PrettyTable()
@@ -52,10 +52,10 @@ def make_analysis(send_file, response_file):
     generic_output_table.add_row(
         [
             len(df_sends.index),
-            round(ms_time_spent_sum/1000, 1),
+            round(ms_time_spent_sum / 1000, 1),
             round(successful_percent, 1),
             round(100 - successful_percent, 1),
-            round(len(df_sends.index) / ms_time_spent_sum*1000, 1),
+            round(len(df_sends.index) / ms_time_spent_sum * 1000, 1),
         ]
     )
     latency_output_table = PrettyTable()
@@ -80,7 +80,7 @@ def make_analysis(send_file, response_file):
         ]
     )
 
-    time_unit = [x - df_sends['sendTime'][0] + 1 for x in df_sends["sendTime"]]
+    time_unit = [x - df_sends["sendTime"][0] + 1 for x in df_sends["sendTime"]]
     print(generic_output_table)
     print(latency_output_table)
     plt.scatter(time_unit, ms_time_spent_list, s=1)
