@@ -31,7 +31,7 @@ def fill_df(host, req_path, req_type, req_verb, req_iters, data):
             create_get(host, req_path, req_type)
 
         elif req_verb == "DELETE":
-            create_get(host, req_path, req_type)
+            create_delete(host, req_path, req_type)
 
     print("Finished generation of requests")
 

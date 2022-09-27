@@ -84,7 +84,7 @@ def make_analysis(send_file, response_file):
     print(generic_output_table)
     print(latency_output_table)
     plt.scatter(time_unit, ms_time_spent_list, s=1)
-    plt.xlabel("Latency_ms")
+    plt.ylabel("Latency_ms")
     plt.savefig("latency.png")
 
 
