@@ -45,9 +45,10 @@ async def read(certificates, file_names, duration):
             for i, req_row in req_df.iloc[:].iterrows():
                 req = req_row["request"].split("$")
                 if req[0] == "POST":
+                    header = {req[4].split(":")[0]:req[4].split(":")[1]}
                     df_sends.loc[i + last_index] = [i + last_index, time.time()]
                     async with session.post(
-                        req[1] + req[2], data=req[6], ssl=sslcontext
+                        req[1]+req[2], data=req[6], headers=header, ssl=sslcontext
                     ) as resp:
                         end_time = time.time()
                         write_response(resp, df_responses, end_time, i, last_index)
