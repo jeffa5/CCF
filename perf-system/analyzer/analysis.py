@@ -10,7 +10,6 @@ import pandas as pd  # type: ignore
 # pylint: disable=import-error
 from prettytable import PrettyTable  # type: ignore
 import numpy as np
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 
@@ -30,8 +29,10 @@ def make_analysis(send_file, response_file):
         assert (
             df_sends.iloc[i]["messageID"] == df_responses.iloc[i]["messageID"]
         ), "the IDs do not match"
-        req_resp = df_responses.iloc[i]["rawResponse"].split("$")
-        if req_resp[2] == "OK":
+        req_resp = df_responses.iloc[i]["rawResponse"].split("\n")
+        status_list = req_resp[0].split(" ")
+        req_type_received = status_list[0]
+        if status_list[2][:2] == "OK":
             successful_reqs += 1
         time_spent_list.append(
             df_responses.iloc[i]["receiveTime"] - df_sends.iloc[i]["sendTime"]
@@ -79,6 +80,8 @@ def make_analysis(send_file, response_file):
             round(np.percentile(ms_time_spent_list, 99.9), 3),
         ]
     )
+
+    print("The request type sent is ", req_type_received)
 
     time_unit = [x - df_sends["sendTime"][0] + 1 for x in df_sends["sendTime"]]
     print(generic_output_table)

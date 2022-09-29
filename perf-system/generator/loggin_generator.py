@@ -6,10 +6,14 @@ from generator import create_parquet
 MYHOST = "https://127.0.0.1:8000"
 MYTYPE = "HTTP/1.1"
 
-for i in range(3):
+for i in range(305):
     MYPATH = "/app/log/private"
     DATA = '{"id": ' + str(i) + ', "msg": "Bulk ' + str(i) + '"}'
     create_post(MYHOST, MYPATH, MYTYPE, DATA)
+# for i in range(2000):
+#     MYPATH = "/v3/kv/range"
+#     DATA = '{"key":"aGVsbG8="}'
+#     create_post(MYHOST, MYPATH, MYTYPE, DATA)
 # for i in range(1000):
 #     MYPATH = "/v3/kv/put"
 #     DATA = '{"key":"aGVsbG8=","value":"d29ybGQ="}'
