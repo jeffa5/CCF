@@ -8,6 +8,8 @@
 #include <arrow/api.h>
 #include <parquet/arrow/reader.h>
 #include <arrow/filesystem/localfs.h>
+#include "arrow/io/file.h"
+#include "parquet/stream_writer.h"
 
 using namespace std;
 
@@ -19,7 +21,9 @@ std::vector<std::string> REQ_TYPE;
 std::vector<std::string> REQ_HEADER;
 std::vector<std::string> REQ_LENGTH;
 std::vector<std::string> REQ_DATA;
-
+std::vector<std::string> RAW_RESPONSE;
+std::vector<double> RESPONSE_TIME;
+std::vector<double> SEND_TIME;
 
 const std::string WHITESPACE = "\", \n\r\t\f\v";
 
@@ -108,6 +112,79 @@ void readParquetFile(){
     }
 }
 
+void writeResponseParquetFile(std::string filename) {
+    
+   std::shared_ptr<arrow::io::FileOutputStream> outfile;
+
+    PARQUET_ASSIGN_OR_THROW(
+      outfile,
+      arrow::io::FileOutputStream::Open(filename));
+
+    parquet::WriterProperties::Builder builder;
+   
+    parquet::schema::NodeVector fields;
+
+    fields.push_back(parquet::schema::PrimitiveNode::Make(
+      "messageId", parquet::Repetition::REQUIRED, parquet::Type::BYTE_ARRAY,
+      parquet::ConvertedType::UTF8));
+    
+    fields.push_back(parquet::schema::PrimitiveNode::Make(
+      "receiveTime", parquet::Repetition::REQUIRED, parquet::Type::DOUBLE,
+      parquet::ConvertedType::NONE));
+
+    fields.push_back(parquet::schema::PrimitiveNode::Make(
+      "rawResponse", parquet::Repetition::OPTIONAL, parquet::Type::BYTE_ARRAY,
+      parquet::ConvertedType::UTF8));
+
+    std::shared_ptr<parquet::schema::GroupNode> schema = 
+      std::static_pointer_cast<parquet::schema::GroupNode>(
+      parquet::schema::GroupNode::Make("schema", parquet::Repetition::REQUIRED, fields));
+
+   parquet::StreamWriter os{
+      parquet::ParquetFileWriter::Open(outfile, schema, builder.build())};
+
+   for (size_t i = 0; i < IDS.size(); i++)
+   {
+      os << IDS[i] << RESPONSE_TIME[i] << RAW_RESPONSE[i] << parquet::EndRow;
+   }
+
+}
+
+void writeSendParquetFile(std::string filename) {
+    
+   std::shared_ptr<arrow::io::FileOutputStream> outfile;
+
+    PARQUET_ASSIGN_OR_THROW(
+      outfile,
+      arrow::io::FileOutputStream::Open(filename));
+
+    parquet::WriterProperties::Builder builder;
+   
+    parquet::schema::NodeVector fields;
+
+    fields.push_back(parquet::schema::PrimitiveNode::Make(
+      "messageId", parquet::Repetition::REQUIRED, parquet::Type::BYTE_ARRAY,
+      parquet::ConvertedType::UTF8));
+    
+    fields.push_back(parquet::schema::PrimitiveNode::Make(
+      "sendTime", parquet::Repetition::REQUIRED, parquet::Type::DOUBLE,
+      parquet::ConvertedType::NONE));
+
+    std::shared_ptr<parquet::schema::GroupNode> schema = 
+      std::static_pointer_cast<parquet::schema::GroupNode>(
+      parquet::schema::GroupNode::Make("schema", parquet::Repetition::REQUIRED, fields));
+
+   parquet::StreamWriter os{
+      parquet::ParquetFileWriter::Open(outfile, schema, builder.build())};
+
+   for (size_t i = 0; i < IDS.size(); i++)
+   {
+      os << IDS[i] << SEND_TIME[i] << parquet::EndRow;
+   }
+
+}
+
+
 size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata) {
 
     std::vector<char> *response = reinterpret_cast<std::vector<char> *>(userdata);
@@ -156,22 +233,47 @@ std::vector<char> request(CURL *curl, std::vector<float> &times, int iter, std::
     std::cout<<res<<std::endl;
     
     double total;
+    timeval curTime;
+    gettimeofday(&curTime, NULL);
+
+    double sendTime = curTime.tv_sec + curTime.tv_usec/1000000.0;
+
     curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total);
 	std::cout << "request from getinfo: " << total << " s\n";
     times.push_back(total);
+
+    SEND_TIME.push_back(sendTime);
+    RESPONSE_TIME.push_back(sendTime + total);
+
+    std::string resp_string(response.begin(), response.end());
+    RAW_RESPONSE.push_back(resp_string);
 	
     return response;
 }
 
 int main(int argc, char **argv) {
 
-    std::vector<string> certificates;
+    std::string cert;
+    std::string key;
+    std::string rootCa;
+    std::string sendFilename;
+    std::string responseFilename;
 
-    if(argc > 2) {
-        certificates.push_back(argv[1]);
-        certificates.push_back(argv[2]);
-        certificates.push_back(argv[3]);
+    cout<<sendFilename.size()<<endl;
+    for(int argiter = 1; argiter < argc; argiter+=2){
+        if(strcmp(argv[argiter], "-c"))
+            cert = argv[argiter + 1];
+        if(strcmp(argv[argiter], "-k"))
+            key = argv[argiter + 1];
+        if(strcmp(argv[argiter], "-ca"))
+            rootCa = argv[argiter + 1];
+        if(strcmp(argv[argiter], "-sf"))
+            sendFilename = argv[argiter + 1];
+        if(strcmp(argv[argiter], "-rf"))
+            responseFilename = argv[argiter + 1];
     }
+
+    std::vector<string> certificates = {cert, key, rootCa};
 
     curl_global_init(CURL_GLOBAL_ALL);
     CURL *curl = curl_easy_init();
@@ -197,7 +299,9 @@ int main(int argc, char **argv) {
 
 	std::cout << "latency: " << times[times.size()/2]*1000 << " ms\n";
 
-    
+    writeSendParquetFile(sendFilename.size()>0? sendFilename : "./cpp_send.parquet");
+    writeResponseParquetFile(responseFilename.size()>0? responseFilename : "./cpp_respond.parquet");
+
     curl_easy_cleanup(curl);
     curl_global_cleanup();
 }
