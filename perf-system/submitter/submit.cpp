@@ -260,17 +260,22 @@ int main(int argc, char **argv) {
     std::string responseFilename;
 
     cout<<sendFilename.size()<<endl;
-    for(int argiter = 1; argiter < argc; argiter+=2){
-        if(strcmp(argv[argiter], "-c"))
-            cert = argv[argiter + 1];
-        if(strcmp(argv[argiter], "-k"))
-            key = argv[argiter + 1];
-        if(strcmp(argv[argiter], "-ca"))
-            rootCa = argv[argiter + 1];
-        if(strcmp(argv[argiter], "-sf"))
-            sendFilename = argv[argiter + 1];
-        if(strcmp(argv[argiter], "-rf"))
-            responseFilename = argv[argiter + 1];
+    for(int argIter = 1; argIter < argc; argIter+=2){
+        if(strcmp(argv[argIter], "-c") == 0) {
+            cert = argv[argIter + 1];
+        }
+        if(strcmp(argv[argIter], "-k") == 0) {
+            key = argv[argIter + 1];
+        }
+        if(strcmp(argv[argIter], "-ca") == 0) {
+            rootCa = argv[argIter + 1];
+        }
+        if(strcmp(argv[argIter], "-sf") == 0) {
+            sendFilename = argv[argIter + 1];
+        }
+        if(strcmp(argv[argIter], "-rf") == 0) {
+            responseFilename = argv[argIter + 1];
+        }
     }
 
     std::vector<string> certificates = {cert, key, rootCa};
