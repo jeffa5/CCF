@@ -251,6 +251,7 @@ std::vector<char> request(
   if (REQ_TYPE[iter] == "HTTP/2")
   {
     curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+    // curl_multi_setopt(curl, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
   }
 
   auto res = curl_easy_perform(curl);
@@ -275,6 +276,12 @@ std::vector<char> request(
   return response;
 }
 
+struct transfer
+{
+  CURL* easy;
+  int num;
+};
+int ROWS = 10000;
 int main(int argc, char** argv)
 {
   std::string cert;
@@ -310,36 +317,114 @@ int main(int argc, char** argv)
 
   std::vector<string> certificates = {cert, key, rootCa};
 
-  curl_global_init(CURL_GLOBAL_ALL);
-  CURL* curl = curl_easy_init();
   std::vector<float> times;
 
   readParquetFile();
 
-  for (int iter = 0; iter < IDS.size(); ++iter)
+  // REQUEST BY REQUEST
+  // CURL* curl = curl_easy_init();
+  // curl_global_init(CURL_GLOBAL_ALL);
+  // for (int iter = 0; iter < IDS.size(); ++iter)
+  // {
+  //   std::vector<char> response = request(curl, times, iter, certificates);
+  //   // for (auto& n : response)
+  //   //   std::cout << n;
+  //   // cout << endl;
+  // }
+
+  // MULTIPLEX
+  CURLM* multi_handle = curl_multi_init();
+  int still_running = 0;
+  std::vector<char> responsesVec[ROWS];
+  struct transfer ts[ROWS];
+  for (int iter = 0; iter < ROWS; iter++)
   {
-    std::vector<char> response = request(curl, times, iter, certificates);
-    // for (auto& n : response)
-    //     std::cout << n;
-    // cout<<endl;
+    CURL* curl;
+    curl = ts[iter].easy = curl_easy_init();
+    curl_easy_setopt(
+      curl, CURLOPT_URL, (REQ_HOST[iter] + REQ_PATH[iter]).c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &(responsesVec[iter]));
+    curl_easy_setopt(curl, CURLOPT_SSLCERT, certificates[0].c_str());
+    curl_easy_setopt(curl, CURLOPT_SSLKEY, certificates[1].c_str());
+    curl_easy_setopt(curl, CURLOPT_CAINFO, certificates[2].c_str());
+    curl_easy_setopt(
+      curl, CURLOPT_HEADER, 1L); // add in the response the headers
+    struct curl_slist* hs = NULL;
+    hs = curl_slist_append(hs, REQ_HEADER[iter].c_str());
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
+
+    if (!REQ_DATA[iter].empty())
+    { // or compare with not GET
+      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, REQ_DATA[iter].c_str());
+    }
+
+    // cout<<REQ_TYPE[iter]<<endl;
+    if (REQ_TYPE[iter] == "HTTP/2")
+    {
+      curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+      // curl_multi_setopt(curl, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
+    }
+
+    curl_easy_setopt(curl, CURLOPT_PIPEWAIT, 1L);
+    curl_multi_add_handle(multi_handle, curl);
   }
 
-  float sum_of_elems;
+  curl_multi_setopt(multi_handle, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
 
-  for (auto& n : times)
-    sum_of_elems += n;
+  do
+  {
+    CURLMcode mc = curl_multi_perform(multi_handle, &still_running);
 
-  // std::cout << "requests took: " << sum_of_elems << " s\n";
+    if (still_running)
+      /* wait for activity, timeout or "nothing" */
+      mc = curl_multi_poll(multi_handle, NULL, 0, 1000, NULL);
 
-  sort(times.begin(), times.end());
+    if (mc)
+    {
+      cout << "mc";
+    }
+  } while (still_running);
 
-  // std::cout << "latency: " << times[times.size()/2]*1000 << " ms\n";
+  timeval curTime;
+
+  gettimeofday(&curTime, NULL);
+
+  double sendTime = curTime.tv_sec + curTime.tv_usec / 1000000.0;
+  for (int i = 0; i < ROWS; i++)
+  {
+    double total;
+    curl_easy_getinfo(ts[i].easy, CURLINFO_TOTAL_TIME, &total);
+    times.push_back(total);
+    SEND_TIME.push_back(0);
+    RESPONSE_TIME.push_back(total);
+
+    std::string resp_string(responsesVec[i].begin(), responsesVec[i].end());
+    RAW_RESPONSE.push_back(resp_string);
+    // cout << total << endl;
+    // for (auto& n : responsesVec[i])
+    //   std::cout << n;
+    // cout << endl;
+    curl_multi_remove_handle(multi_handle, ts[i].easy);
+    curl_easy_cleanup(ts[i].easy);
+  }
+
+  // float sum_of_elems;
+
+  // for (auto& n : times)
+  //   sum_of_elems += n;
+
+  // // std::cout << "requests took: " << sum_of_elems << " s\n";
+
+  // sort(times.begin(), times.end());
+
+  // // std::cout << "latency: " << times[times.size()/2]*1000 << " ms\n";
 
   writeSendParquetFile(
     sendFilename.size() > 0 ? sendFilename : "./cpp_send.parquet");
   writeResponseParquetFile(
     responseFilename.size() > 0 ? responseFilename : "./cpp_respond.parquet");
 
-  curl_easy_cleanup(curl);
-  curl_global_cleanup();
+  // curl_easy_cleanup(curl);
+  // curl_global_cleanup();
 }

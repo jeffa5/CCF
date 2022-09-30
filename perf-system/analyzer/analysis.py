@@ -42,6 +42,9 @@ def make_analysis(send_file, response_file):
     ms_time_spent_list = [x * 1000 for x in time_spent_list]
     ms_time_spent_sum = sum(ms_time_spent_list)
 
+    # FOR MULTIPLEXING IS DIFFERENT TIME_SPENT
+    ms_time_spent_sum = ms_time_spent_list[-1]
+
     generic_output_table = PrettyTable()
     generic_output_table.field_names = [
         "Total Requests",
