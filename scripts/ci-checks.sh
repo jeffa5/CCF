@@ -48,9 +48,9 @@ fi
 echo "$CHECK_DELIMITER"
 echo "-- C/C++/Proto format"
 if [ $FIX -ne 0 ]; then
-  "$SCRIPT_DIR"/check-format.sh -f include src samples
+  "$SCRIPT_DIR"/check-format.sh -f include src samples perf-system
 else
-  "$SCRIPT_DIR"/check-format.sh include src samples
+  "$SCRIPT_DIR"/check-format.sh include src samples perf-system
 fi
 
 echo "$CHECK_DELIMITER"
