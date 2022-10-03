@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the Apache 2.0 License.
-#include "arrow/io/file.h"
-#include "parquet/stream_writer.h"
 
 #include <arrow/api.h>
 #include <arrow/array/array_binary.h>
 #include <arrow/filesystem/localfs.h>
+#include <arrow/io/file.h>
 #include <bits/stdc++.h>
 #include <chrono>
 #include <curl/curl.h>
 #include <iostream>
 #include <parquet/arrow/reader.h>
+#include <parquet/stream_writer.h>
 #include <vector>
 
 using namespace std;
@@ -281,7 +281,7 @@ struct transfer
   CURL* easy;
   int num;
 };
-int ROWS = 10000;
+
 int main(int argc, char** argv)
 {
   std::string cert;
@@ -322,22 +322,30 @@ int main(int argc, char** argv)
   readParquetFile();
 
   // REQUEST BY REQUEST
-  // CURL* curl = curl_easy_init();
-  // curl_global_init(CURL_GLOBAL_ALL);
-  // for (int iter = 0; iter < IDS.size(); ++iter)
-  // {
-  //   std::vector<char> response = request(curl, times, iter, certificates);
-  //   // for (auto& n : response)
-  //   //   std::cout << n;
-  //   // cout << endl;
-  // }
+  CURL* curl = curl_easy_init();
+  curl_global_init(CURL_GLOBAL_ALL);
+  for (int iter = 0; iter < 10; ++iter)
+  {
+    std::vector<char> response = request(curl, times, iter, certificates);
+    // for (auto& n : response)
+    //   std::cout << n;
+    // cout << endl;
+  }
+
+  for (int iter = 10; iter < 15; ++iter)
+  {
+    std::vector<char> response = request(curl, times, iter, certificates);
+    // for (auto& n : response)
+    //   std::cout << n;
+    // cout << endl;
+  }
 
   // MULTIPLEX
   CURLM* multi_handle = curl_multi_init();
   int still_running = 0;
-  std::vector<char> responsesVec[ROWS];
-  struct transfer ts[ROWS];
-  for (int iter = 0; iter < ROWS; iter++)
+  std::vector<char> responsesVec[IDS.size()];
+  struct transfer ts[IDS.size()];
+  for (int iter = 15; iter < IDS.size(); iter++)
   {
     CURL* curl;
     curl = ts[iter].easy = curl_easy_init();
@@ -359,11 +367,9 @@ int main(int argc, char** argv)
       curl_easy_setopt(curl, CURLOPT_POSTFIELDS, REQ_DATA[iter].c_str());
     }
 
-    // cout<<REQ_TYPE[iter]<<endl;
     if (REQ_TYPE[iter] == "HTTP/2")
     {
       curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
-      // curl_multi_setopt(curl, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
     }
 
     curl_easy_setopt(curl, CURLOPT_PIPEWAIT, 1L);
@@ -382,16 +388,12 @@ int main(int argc, char** argv)
 
     if (mc)
     {
-      cout << "mc";
+      cout << "mc" << endl << "Exiting" << endl;
+      exit(0);
     }
   } while (still_running);
 
-  timeval curTime;
-
-  gettimeofday(&curTime, NULL);
-
-  double sendTime = curTime.tv_sec + curTime.tv_usec / 1000000.0;
-  for (int i = 0; i < ROWS; i++)
+  for (int i = 15; i < IDS.size(); i++)
   {
     double total;
     curl_easy_getinfo(ts[i].easy, CURLINFO_TOTAL_TIME, &total);
