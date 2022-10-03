@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the Apache 2.0 License.
 
+#include "handle_arguments.hpp"
+
 #include <arrow/api.h>
 #include <arrow/array/array_binary.h>
 #include <arrow/filesystem/localfs.h>
@@ -43,30 +45,13 @@ std::vector<std::string> splitString(const std::string& str, char splitter)
   return tokens;
 }
 
-std::string ltrim(const std::string& s)
-{
-  size_t start = s.find_first_not_of(WHITESPACE);
-  return (start == std::string::npos) ? "" : s.substr(start);
-}
-
-std::string rtrim(const std::string& s)
-{
-  size_t end = s.find_last_not_of(WHITESPACE);
-  return (end == std::string::npos) ? "" : s.substr(0, end + 1);
-}
-
-std::string trim(const std::string& s)
-{
-  return rtrim(ltrim(s));
-}
-
-void readParquetFile()
+void readParquetFile(string generatorFilename)
 {
   arrow::Status st;
   arrow::MemoryPool* pool = arrow::default_memory_pool();
   arrow::fs::LocalFileSystem file_system;
   std::shared_ptr<arrow::io::RandomAccessFile> input =
-    file_system.OpenInputFile("../generator/requests.parquet").ValueOrDie();
+    file_system.OpenInputFile(generatorFilename).ValueOrDie();
 
   // Open Parquet file reader
   std::unique_ptr<parquet::arrow::FileReader> arrow_reader;
@@ -77,7 +62,7 @@ void readParquetFile()
   }
   else
   {
-    std::cout << "read" << std::endl;
+    std::cout << "Read generator file" << std::endl;
   }
 
   // Read entire file as a single Arrow table
@@ -90,7 +75,7 @@ void readParquetFile()
   }
   else
   {
-    std::cout << "opened" << std::endl;
+    std::cout << "Opened generator file" << std::endl;
   }
 
   std::shared_ptr<::arrow::ChunkedArray> column;
@@ -251,13 +236,11 @@ std::vector<char> request(
 {
   std::vector<char> response;
 
-  // cout<<REQ_HOST[iter]+REQ_PATH[iter]<<endl;
   curl_easy_setopt(
     curl, CURLOPT_URL, (REQ_HOST[iter] + REQ_PATH[iter]).c_str());
   genericRequestSettings(curl, iter, certificates, response);
 
   auto res = curl_easy_perform(curl);
-  // std::cout<<res<<std::endl;
 
   double total;
   timeval curTime;
@@ -266,7 +249,6 @@ std::vector<char> request(
   double sendTime = curTime.tv_sec + curTime.tv_usec / 1000000.0;
 
   curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total);
-  // std::cout << "request from getinfo: " << total << " s\n";
   times.push_back(total);
 
   SEND_TIME.push_back(sendTime);
@@ -286,48 +268,16 @@ struct transfer
 
 int main(int argc, char** argv)
 {
-  std::string cert;
-  std::string key;
-  std::string rootCa;
-  std::string sendFilename;
-  std::string responseFilename;
-  bool isMulitplex = false;
+  ArgumentParser args;
+  args.argument_assigner(argc, argv);
 
-  for (int argIter = 1; argIter < argc; argIter++)
-  {
-    if (strcmp(argv[argIter], "-c") == 0)
-    {
-      cert = argv[argIter + 1];
-    }
-    if (strcmp(argv[argIter], "-k") == 0)
-    {
-      key = argv[argIter + 1];
-    }
-    if (strcmp(argv[argIter], "-ca") == 0)
-    {
-      rootCa = argv[argIter + 1];
-    }
-    if (strcmp(argv[argIter], "-sf") == 0)
-    {
-      sendFilename = argv[argIter + 1];
-    }
-    if (strcmp(argv[argIter], "-rf") == 0)
-    {
-      responseFilename = argv[argIter + 1];
-    }
-    if (strcmp(argv[argIter], "-multiplex") == 0)
-    {
-      isMulitplex = true;
-    }
-  }
-
-  std::vector<string> certificates = {cert, key, rootCa};
+  std::vector<string> certificates = {args.cert, args.key, args.rootCa};
 
   std::vector<float> times;
 
-  readParquetFile();
+  readParquetFile(args.generatorFilename);
 
-  if (!isMulitplex)
+  if (!args.isMulitplex)
   {
     // REQUEST BY REQUEST
     CURL* curl = curl_easy_init();
@@ -339,6 +289,8 @@ int main(int argc, char** argv)
       //   std::cout << n;
       // cout << endl;
     }
+    curl_easy_cleanup(curl);
+    curl_global_cleanup();
   }
   else
   {
@@ -384,31 +336,12 @@ int main(int argc, char** argv)
 
       std::string resp_string(responsesVec[i].begin(), responsesVec[i].end());
       RAW_RESPONSE.push_back(resp_string);
-      // cout << total << endl;
-      // for (auto& n : responsesVec[i])
-      //   std::cout << n;
-      // cout << endl;
+
       curl_multi_remove_handle(multi_handle, ts[i].easy);
       curl_easy_cleanup(ts[i].easy);
     }
   }
 
-  // float sum_of_elems;
-
-  // for (auto& n : times)
-  //   sum_of_elems += n;
-
-  // // std::cout << "requests took: " << sum_of_elems << " s\n";
-
-  // sort(times.begin(), times.end());
-
-  // // std::cout << "latency: " << times[times.size()/2]*1000 << " ms\n";
-
-  writeSendParquetFile(
-    sendFilename.size() > 0 ? sendFilename : "./cpp_send.parquet");
-  writeResponseParquetFile(
-    responseFilename.size() > 0 ? responseFilename : "./cpp_respond.parquet");
-
-  // curl_easy_cleanup(curl);
-  // curl_global_cleanup();
+  writeSendParquetFile(args.sendFilename);
+  writeResponseParquetFile(args.responseFilename);
 }
