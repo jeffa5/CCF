@@ -6,7 +6,7 @@ from generator import create_parquet
 MYHOST = "https://127.0.0.1:8000"
 MYTYPE = "HTTP/2"
 
-for i in range(10000):
+for i in range(100):
     MYPATH = "/v3/kv/range"
     DATA = '{"key":"aGVsbG8="}'
     create_post(MYHOST, MYPATH, MYTYPE, DATA)

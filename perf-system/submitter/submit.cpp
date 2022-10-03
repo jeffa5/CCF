@@ -211,6 +211,38 @@ size_t write_callback(char* ptr, size_t size, size_t nmemb, void* userdata)
   return nmemb;
 }
 
+void genericRequestSettings(
+  CURL* curl,
+  int iter,
+  std::vector<string> certificates,
+  std::vector<char>& response)
+{
+  curl_easy_setopt(
+    curl, CURLOPT_URL, (REQ_HOST[iter] + REQ_PATH[iter]).c_str());
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+  if (certificates.size() > 0)
+  {
+    curl_easy_setopt(curl, CURLOPT_SSLCERT, certificates[0].c_str());
+    curl_easy_setopt(curl, CURLOPT_SSLKEY, certificates[1].c_str());
+    curl_easy_setopt(curl, CURLOPT_CAINFO, certificates[2].c_str());
+  }
+  curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // add in the response the headers
+  struct curl_slist* hs = NULL;
+  hs = curl_slist_append(hs, REQ_HEADER[iter].c_str());
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
+
+  if (!REQ_DATA[iter].empty())
+  { // or compare with not GET
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, REQ_DATA[iter].c_str());
+  }
+
+  if (REQ_TYPE[iter] == "HTTP/2")
+  {
+    curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+  }
+}
+
 std::vector<char> request(
   CURL* curl,
   std::vector<float>& times,
@@ -222,37 +254,7 @@ std::vector<char> request(
   // cout<<REQ_HOST[iter]+REQ_PATH[iter]<<endl;
   curl_easy_setopt(
     curl, CURLOPT_URL, (REQ_HOST[iter] + REQ_PATH[iter]).c_str());
-
-  curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-  curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-
-  if (certificates.size() > 0)
-  {
-    curl_easy_setopt(curl, CURLOPT_SSLCERT, certificates[0].c_str());
-    curl_easy_setopt(curl, CURLOPT_SSLKEY, certificates[1].c_str());
-    curl_easy_setopt(curl, CURLOPT_CAINFO, certificates[2].c_str());
-  }
-
-  curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // add in the response the headers
-
-  struct curl_slist* hs = NULL;
-  hs = curl_slist_append(hs, REQ_HEADER[iter].c_str());
-  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
-
-  if (!REQ_DATA[iter].empty())
-  { // or compare with not GET
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, REQ_DATA[iter].c_str());
-  }
-
-  // cout<<REQ_TYPE[iter]<<endl;
-  if (REQ_TYPE[iter] == "HTTP/2")
-  {
-    curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
-    // curl_multi_setopt(curl, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
-  }
+  genericRequestSettings(curl, iter, certificates, response);
 
   auto res = curl_easy_perform(curl);
   // std::cout<<res<<std::endl;
@@ -289,9 +291,9 @@ int main(int argc, char** argv)
   std::string rootCa;
   std::string sendFilename;
   std::string responseFilename;
+  bool isMulitplex = false;
 
-  // cout<<sendFilename.size()<<endl;
-  for (int argIter = 1; argIter < argc; argIter += 2)
+  for (int argIter = 1; argIter < argc; argIter++)
   {
     if (strcmp(argv[argIter], "-c") == 0)
     {
@@ -313,6 +315,10 @@ int main(int argc, char** argv)
     {
       responseFilename = argv[argIter + 1];
     }
+    if (strcmp(argv[argIter], "-multiplex") == 0)
+    {
+      isMulitplex = true;
+    }
   }
 
   std::vector<string> certificates = {cert, key, rootCa};
@@ -321,94 +327,70 @@ int main(int argc, char** argv)
 
   readParquetFile();
 
-  // REQUEST BY REQUEST
-  CURL* curl = curl_easy_init();
-  curl_global_init(CURL_GLOBAL_ALL);
-  for (int iter = 0; iter < 10; ++iter)
+  if (!isMulitplex)
   {
-    std::vector<char> response = request(curl, times, iter, certificates);
-    // for (auto& n : response)
-    //   std::cout << n;
-    // cout << endl;
-  }
-
-  for (int iter = 10; iter < 15; ++iter)
-  {
-    std::vector<char> response = request(curl, times, iter, certificates);
-    // for (auto& n : response)
-    //   std::cout << n;
-    // cout << endl;
-  }
-
-  // MULTIPLEX
-  CURLM* multi_handle = curl_multi_init();
-  int still_running = 0;
-  std::vector<char> responsesVec[IDS.size()];
-  struct transfer ts[IDS.size()];
-  for (int iter = 15; iter < IDS.size(); iter++)
-  {
-    CURL* curl;
-    curl = ts[iter].easy = curl_easy_init();
-    curl_easy_setopt(
-      curl, CURLOPT_URL, (REQ_HOST[iter] + REQ_PATH[iter]).c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &(responsesVec[iter]));
-    curl_easy_setopt(curl, CURLOPT_SSLCERT, certificates[0].c_str());
-    curl_easy_setopt(curl, CURLOPT_SSLKEY, certificates[1].c_str());
-    curl_easy_setopt(curl, CURLOPT_CAINFO, certificates[2].c_str());
-    curl_easy_setopt(
-      curl, CURLOPT_HEADER, 1L); // add in the response the headers
-    struct curl_slist* hs = NULL;
-    hs = curl_slist_append(hs, REQ_HEADER[iter].c_str());
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
-
-    if (!REQ_DATA[iter].empty())
-    { // or compare with not GET
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, REQ_DATA[iter].c_str());
-    }
-
-    if (REQ_TYPE[iter] == "HTTP/2")
+    // REQUEST BY REQUEST
+    CURL* curl = curl_easy_init();
+    curl_global_init(CURL_GLOBAL_ALL);
+    for (int iter = 0; iter < IDS.size(); ++iter)
     {
-      curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+      std::vector<char> response = request(curl, times, iter, certificates);
+      // for (auto& n : response)
+      //   std::cout << n;
+      // cout << endl;
     }
-
-    curl_easy_setopt(curl, CURLOPT_PIPEWAIT, 1L);
-    curl_multi_add_handle(multi_handle, curl);
   }
-
-  curl_multi_setopt(multi_handle, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
-
-  do
+  else
   {
-    CURLMcode mc = curl_multi_perform(multi_handle, &still_running);
-
-    if (still_running)
-      /* wait for activity, timeout or "nothing" */
-      mc = curl_multi_poll(multi_handle, NULL, 0, 1000, NULL);
-
-    if (mc)
+    // MULTIPLEX
+    CURLM* multi_handle = curl_multi_init();
+    int still_running = 0;
+    std::vector<char> responsesVec[IDS.size()];
+    struct transfer ts[IDS.size()];
+    for (int iter = 0; iter < IDS.size(); iter++)
     {
-      cout << "mc" << endl << "Exiting" << endl;
-      exit(0);
+      CURL* curl;
+      curl = ts[iter].easy = curl_easy_init();
+      genericRequestSettings(curl, iter, certificates, responsesVec[iter]);
+
+      curl_easy_setopt(curl, CURLOPT_PIPEWAIT, 1L);
+      curl_multi_add_handle(multi_handle, curl);
     }
-  } while (still_running);
 
-  for (int i = 15; i < IDS.size(); i++)
-  {
-    double total;
-    curl_easy_getinfo(ts[i].easy, CURLINFO_TOTAL_TIME, &total);
-    times.push_back(total);
-    SEND_TIME.push_back(0);
-    RESPONSE_TIME.push_back(total);
+    curl_multi_setopt(multi_handle, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
 
-    std::string resp_string(responsesVec[i].begin(), responsesVec[i].end());
-    RAW_RESPONSE.push_back(resp_string);
-    // cout << total << endl;
-    // for (auto& n : responsesVec[i])
-    //   std::cout << n;
-    // cout << endl;
-    curl_multi_remove_handle(multi_handle, ts[i].easy);
-    curl_easy_cleanup(ts[i].easy);
+    do
+    {
+      CURLMcode mc = curl_multi_perform(multi_handle, &still_running);
+
+      if (still_running)
+        /* wait for activity, timeout or "nothing" */
+        mc = curl_multi_poll(multi_handle, NULL, 0, 1000, NULL);
+
+      if (mc)
+      {
+        cout << "mc" << endl << "Exiting" << endl;
+        exit(0);
+      }
+    } while (still_running);
+
+    for (int i = 0; i < IDS.size(); i++)
+    {
+      double total;
+      curl_easy_getinfo(ts[i].easy, CURLINFO_TOTAL_TIME, &total);
+      times.push_back(total);
+      SEND_TIME.push_back(0);
+      RESPONSE_TIME.push_back(total);
+
+      std::string resp_string(responsesVec[i].begin(), responsesVec[i].end());
+      RAW_RESPONSE.push_back(resp_string);
+      // cout << total << endl;
+      // for (auto& n : responsesVec[i])
+      //   std::cout << n;
+      // cout << endl;
+      curl_multi_remove_handle(multi_handle, ts[i].easy);
+      curl_easy_cleanup(ts[i].easy);
+    }
   }
 
   // float sum_of_elems;

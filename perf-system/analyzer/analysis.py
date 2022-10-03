@@ -11,6 +11,7 @@ import pandas as pd  # type: ignore
 from prettytable import PrettyTable  # type: ignore
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
 
 
 def make_analysis(send_file, response_file):
@@ -29,6 +30,9 @@ def make_analysis(send_file, response_file):
         assert (
             df_sends.iloc[i]["messageID"] == df_responses.iloc[i]["messageID"]
         ), "the IDs do not match"
+        if len(df_responses.iloc[i]["rawResponse"]) < 1:
+            print("There is not Response Content")
+            sys.exit(2)
         req_resp = df_responses.iloc[i]["rawResponse"].split("\n")
         status_list = req_resp[0].split(" ")
         req_type_received = status_list[0]
