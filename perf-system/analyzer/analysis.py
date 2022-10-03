@@ -103,8 +103,8 @@ def main():
     The function to receive the arguments
     from the command line
     """
-    arg_send_file = "../submitter/sends.parquet"
-    arg_response_file = "../submitter/responses.parquet"
+    arg_send_file = "../submitter/cpp_sends.parquet"
+    arg_response_file = "../submitter/cpp_responses.parquet"
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
