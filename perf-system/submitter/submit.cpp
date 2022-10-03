@@ -309,7 +309,14 @@ int main(int argc, char** argv)
       curl_multi_add_handle(multi_handle, curl);
     }
 
-    curl_multi_setopt(multi_handle, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
+    if (REQ_TYPE[iter] == "HTTP/2")
+    {
+      curl_multi_setopt(multi_handle, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
+    }
+    else
+    {
+      curl_multi_setopt(multi_handle, CURLMOPT_PIPELINING, CURLPIPE_HTTP1);
+    }
 
     do
     {
@@ -328,15 +335,27 @@ int main(int argc, char** argv)
 
     for (int i = 0; i < IDS.size(); i++)
     {
+      // long http_code = 0;
+      // curl_easy_getinfo(ts[i].easy, CURLINFO_RESPONSE_CODE, &http_code);
+      // cout << http_code << endl;
       double total;
       curl_easy_getinfo(ts[i].easy, CURLINFO_TOTAL_TIME, &total);
       times.push_back(total);
       SEND_TIME.push_back(0);
       RESPONSE_TIME.push_back(total);
 
-      std::string resp_string(responsesVec[i].begin(), responsesVec[i].end());
-      RAW_RESPONSE.push_back(resp_string);
-
+      if (responsesVec[i].size() > 0)
+      {
+        std::string resp_string(responsesVec[i].begin(), responsesVec[i].end());
+        RAW_RESPONSE.push_back(resp_string);
+      }
+      else
+      {
+        long http_code = 0;
+        curl_easy_getinfo(ts[i].easy, CURLINFO_RESPONSE_CODE, &http_code);
+        RAW_RESPONSE.push_back(to_string(http_code));
+      }
+      long http_code = 0;
       curl_multi_remove_handle(multi_handle, ts[i].easy);
       curl_easy_cleanup(ts[i].easy);
     }
