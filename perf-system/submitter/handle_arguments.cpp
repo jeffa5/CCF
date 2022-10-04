@@ -40,5 +40,9 @@ void ArgumentParser::argument_assigner(int argc, char** argv)
     {
       generatorFilename = argv[argIter + 1];
     }
+    if (strcmp(argv[argIter], "-d") == 0)
+    {
+      duration = atoi(argv[argIter + 1]);
+    }
   }
 }

@@ -10,6 +10,7 @@
 #include <arrow/io/file.h>
 #include <bits/stdc++.h>
 #include <chrono>
+#include <ctime>
 #include <curl/curl.h>
 #include <iostream>
 #include <parquet/arrow/reader.h>
@@ -17,8 +18,6 @@
 #include <vector>
 
 using namespace std;
-
-const std::string WHITESPACE = "\", \n\r\t\f\v";
 
 std::vector<std::string> splitString(const std::string& str, char splitter)
 {
@@ -134,9 +133,9 @@ void writeResponseParquetFile(std::string filename, ParquetData& data_handler)
   parquet::StreamWriter os{
     parquet::ParquetFileWriter::Open(outfile, schema, builder.build())};
 
-  for (size_t i = 0; i < data_handler.IDS.size(); i++)
+  for (size_t i = 0; i < data_handler.RESPONSE_TIME.size(); i++)
   {
-    os << data_handler.IDS[i] << data_handler.RESPONSE_TIME[i]
+    os << to_string(i) << data_handler.RESPONSE_TIME[i]
        << data_handler.RAW_RESPONSE[i] << parquet::EndRow;
   }
 }
@@ -171,9 +170,9 @@ void writeSendParquetFile(std::string filename, ParquetData& data_handler)
   parquet::StreamWriter os{
     parquet::ParquetFileWriter::Open(outfile, schema, builder.build())};
 
-  for (size_t i = 0; i < data_handler.IDS.size(); i++)
+  for (size_t i = 0; i < data_handler.SEND_TIME.size(); i++)
   {
-    os << data_handler.IDS[i] << data_handler.SEND_TIME[i] << parquet::EndRow;
+    os << to_string(i) << data_handler.SEND_TIME[i] << parquet::EndRow;
   }
 }
 
@@ -222,7 +221,7 @@ void genericRequestSettings(
   }
 }
 
-std::vector<char> request(
+std::vector<char> submitSingleRequest(
   CURL* curl,
   int iter,
   std::vector<string> certificates,
@@ -258,7 +257,6 @@ std::vector<char> request(
 struct transfer
 {
   CURL* easy;
-  int num;
 };
 
 int main(int argc, char** argv)
@@ -266,27 +264,42 @@ int main(int argc, char** argv)
   ArgumentParser args;
   args.argument_assigner(argc, argv);
   ParquetData data_handler;
+  cout << args.duration << endl;
 
   std::vector<string> certificates = {args.cert, args.key, args.rootCa};
 
   readParquetFile(args.generatorFilename, data_handler);
-  cout << data_handler.IDS.size() << endl;
 
   if (!args.isMulitplex)
   {
     // REQUEST BY REQUEST
+    cout << "Start Submitting requests" << endl;
     CURL* curl = curl_easy_init();
-    curl_global_init(CURL_GLOBAL_ALL);
-    for (int iter = 0; iter < data_handler.IDS.size(); ++iter)
+
+    auto start = chrono::steady_clock::now();
+    if (args.duration > 0)
     {
-      std::vector<char> response =
-        request(curl, iter, certificates, data_handler);
-      // for (auto& n : response)
-      //   std::cout << n;
-      // cout << endl;
+      int requestsSize = data_handler.IDS.size();
+      for (int iter = 0;
+           chrono::duration<double>(chrono::steady_clock::now() - start)
+             .count() < args.duration;
+           ++iter)
+      {
+        std::vector<char> response = submitSingleRequest(
+          curl, iter % requestsSize, certificates, data_handler);
+      }
     }
+    else
+    {
+      for (int iter = 0; iter < data_handler.IDS.size(); ++iter)
+      {
+        std::vector<char> response =
+          submitSingleRequest(curl, iter, certificates, data_handler);
+      }
+    }
+
     curl_easy_cleanup(curl);
-    curl_global_cleanup();
+    cout << "Finished Submitting requests" << endl;
   }
   else
   {
@@ -294,18 +307,17 @@ int main(int argc, char** argv)
     CURLM* multi_handle = curl_multi_init();
     int still_running = 0;
     std::vector<char> responsesVec[data_handler.IDS.size()];
-    struct transfer ts[data_handler.IDS.size()];
+    CURL* ts[data_handler.IDS.size()];
     timeval curTime; // Store timestamp of multiple send
 
     for (int iter = 0; iter < data_handler.IDS.size(); iter++)
     {
-      CURL* curl;
-      curl = ts[iter].easy = curl_easy_init();
+      ts[iter] = curl_easy_init();
       genericRequestSettings(
-        curl, iter, certificates, responsesVec[iter], data_handler);
+        ts[iter], iter, certificates, responsesVec[iter], data_handler);
 
-      curl_easy_setopt(curl, CURLOPT_PIPEWAIT, 1L);
-      curl_multi_add_handle(multi_handle, curl);
+      curl_easy_setopt(ts[iter], CURLOPT_PIPEWAIT, 1L);
+      curl_multi_add_handle(multi_handle, ts[iter]);
     }
 
     if (data_handler.REQ_TYPE[0] == "HTTP/2") // Assuming all the requests have
@@ -338,7 +350,7 @@ int main(int argc, char** argv)
     for (int i = 0; i < data_handler.IDS.size(); i++)
     {
       double total;
-      curl_easy_getinfo(ts[i].easy, CURLINFO_TOTAL_TIME, &total);
+      curl_easy_getinfo(ts[i], CURLINFO_TOTAL_TIME, &total);
       double sendTime = curTime.tv_sec + curTime.tv_usec / 1000000.0;
       data_handler.SEND_TIME.push_back(sendTime);
       data_handler.RESPONSE_TIME.push_back(sendTime + total);
@@ -351,11 +363,11 @@ int main(int argc, char** argv)
       else
       {
         long http_code = 0;
-        curl_easy_getinfo(ts[i].easy, CURLINFO_RESPONSE_CODE, &http_code);
+        curl_easy_getinfo(ts[i], CURLINFO_RESPONSE_CODE, &http_code);
         data_handler.RAW_RESPONSE.push_back(to_string(http_code));
       }
-      curl_multi_remove_handle(multi_handle, ts[i].easy);
-      curl_easy_cleanup(ts[i].easy);
+      curl_multi_remove_handle(multi_handle, ts[i]);
+      curl_easy_cleanup(ts[i]);
     }
   }
 

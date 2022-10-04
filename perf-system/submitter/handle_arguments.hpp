@@ -15,6 +15,7 @@ public:
   std::string responseFilename = "./cpp_respond.parquet";
   std::string generatorFilename = "../generator/requests.parquet";
   bool isMulitplex = false;
+  int duration = -1;
   ArgumentParser();
   void argument_assigner(int argc, char** argv);
 };
