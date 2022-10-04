@@ -11,7 +11,7 @@ MYHOST = "https://127.0.0.1:8000"
 #     DATA = '{"id": 42, "msg": "Logged to private table"}'
 
 #     create_post(MYHOST, MYPATH, MYTYPE, DATA)
-for i in range(100200):
+for i in range(1020):
     MYTYPE = "HTTP/2"
     MYPATH = "/v3/kv/range"
     DATA = '{"key":"aGVsbG8="}'

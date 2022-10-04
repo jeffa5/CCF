@@ -2,6 +2,7 @@
 // Licensed under the Apache 2.0 License.
 
 #include "handle_arguments.hpp"
+#include "parquet_data.hpp"
 
 #include <arrow/api.h>
 #include <arrow/array/array_binary.h>
@@ -16,18 +17,6 @@
 #include <vector>
 
 using namespace std;
-
-std::vector<std::string> IDS;
-std::vector<std::string> REQ_VERB;
-std::vector<std::string> REQ_HOST;
-std::vector<std::string> REQ_PATH;
-std::vector<std::string> REQ_TYPE;
-std::vector<std::string> REQ_HEADER;
-std::vector<std::string> REQ_LENGTH;
-std::vector<std::string> REQ_DATA;
-std::vector<std::string> RAW_RESPONSE;
-std::vector<double> RESPONSE_TIME;
-std::vector<double> SEND_TIME;
 
 const std::string WHITESPACE = "\", \n\r\t\f\v";
 
@@ -45,7 +34,7 @@ std::vector<std::string> splitString(const std::string& str, char splitter)
   return tokens;
 }
 
-void readParquetFile(string generatorFilename)
+void readParquetFile(string generatorFilename, ParquetData& data_handler)
 {
   arrow::Status st;
   arrow::MemoryPool* pool = arrow::default_memory_pool();
@@ -91,25 +80,25 @@ void readParquetFile(string generatorFilename)
       0)); // ASSIGN there is only one chunk with col->num_chunks();
   for (int row = 0; row < col1Vals->length(); row++)
   {
-    IDS.push_back(col1Vals->GetString(row));
+    data_handler.IDS.push_back(col1Vals->GetString(row));
     std::vector<string> splitted_req = splitString(
       col2Vals->GetString(row), '$'); // ASSUME om data there are now $, think
                                       // of adding data to new parquet col
 
-    REQ_VERB.push_back(splitted_req.at(0));
-    REQ_HOST.push_back(splitted_req.at(1));
-    REQ_PATH.push_back(splitted_req.at(2));
-    REQ_TYPE.push_back(splitted_req.at(3));
-    REQ_HEADER.push_back(splitted_req.at(4));
-    REQ_LENGTH.push_back(splitted_req.at(5));
+    data_handler.REQ_VERB.push_back(splitted_req.at(0));
+    data_handler.REQ_HOST.push_back(splitted_req.at(1));
+    data_handler.REQ_PATH.push_back(splitted_req.at(2));
+    data_handler.REQ_TYPE.push_back(splitted_req.at(3));
+    data_handler.REQ_HEADER.push_back(splitted_req.at(4));
+    data_handler.REQ_LENGTH.push_back(splitted_req.at(5));
     if (splitted_req.size() > 6)
-      REQ_DATA.push_back(splitted_req.at(6));
+      data_handler.REQ_DATA.push_back(splitted_req.at(6));
     else
-      REQ_DATA.push_back("");
+      data_handler.REQ_DATA.push_back("");
   }
 }
 
-void writeResponseParquetFile(std::string filename)
+void writeResponseParquetFile(std::string filename, ParquetData& data_handler)
 {
   std::shared_ptr<arrow::io::FileOutputStream> outfile;
 
@@ -145,13 +134,14 @@ void writeResponseParquetFile(std::string filename)
   parquet::StreamWriter os{
     parquet::ParquetFileWriter::Open(outfile, schema, builder.build())};
 
-  for (size_t i = 0; i < IDS.size(); i++)
+  for (size_t i = 0; i < data_handler.IDS.size(); i++)
   {
-    os << IDS[i] << RESPONSE_TIME[i] << RAW_RESPONSE[i] << parquet::EndRow;
+    os << data_handler.IDS[i] << data_handler.RESPONSE_TIME[i]
+       << data_handler.RAW_RESPONSE[i] << parquet::EndRow;
   }
 }
 
-void writeSendParquetFile(std::string filename)
+void writeSendParquetFile(std::string filename, ParquetData& data_handler)
 {
   std::shared_ptr<arrow::io::FileOutputStream> outfile;
 
@@ -181,9 +171,9 @@ void writeSendParquetFile(std::string filename)
   parquet::StreamWriter os{
     parquet::ParquetFileWriter::Open(outfile, schema, builder.build())};
 
-  for (size_t i = 0; i < IDS.size(); i++)
+  for (size_t i = 0; i < data_handler.IDS.size(); i++)
   {
-    os << IDS[i] << SEND_TIME[i] << parquet::EndRow;
+    os << data_handler.IDS[i] << data_handler.SEND_TIME[i] << parquet::EndRow;
   }
 }
 
@@ -200,10 +190,13 @@ void genericRequestSettings(
   CURL* curl,
   int iter,
   std::vector<string> certificates,
-  std::vector<char>& response)
+  std::vector<char>& response,
+  ParquetData& data_handler)
 {
   curl_easy_setopt(
-    curl, CURLOPT_URL, (REQ_HOST[iter] + REQ_PATH[iter]).c_str());
+    curl,
+    CURLOPT_URL,
+    (data_handler.REQ_HOST[iter] + data_handler.REQ_PATH[iter]).c_str());
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
   if (certificates.size() > 0)
@@ -214,15 +207,16 @@ void genericRequestSettings(
   }
   curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // add in the response the headers
   struct curl_slist* hs = NULL;
-  hs = curl_slist_append(hs, REQ_HEADER[iter].c_str());
+  hs = curl_slist_append(hs, data_handler.REQ_HEADER[iter].c_str());
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
 
-  if (!REQ_DATA[iter].empty())
+  if (!data_handler.REQ_DATA[iter].empty())
   { // or compare with not GET
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, REQ_DATA[iter].c_str());
+    curl_easy_setopt(
+      curl, CURLOPT_POSTFIELDS, data_handler.REQ_DATA[iter].c_str());
   }
 
-  if (REQ_TYPE[iter] == "HTTP/2")
+  if (data_handler.REQ_TYPE[iter] == "HTTP/2")
   {
     curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
   }
@@ -230,15 +224,17 @@ void genericRequestSettings(
 
 std::vector<char> request(
   CURL* curl,
-  // std::vector<float>& times,
   int iter,
-  std::vector<string> certificates)
+  std::vector<string> certificates,
+  ParquetData& data_handler)
 {
   std::vector<char> response;
 
   curl_easy_setopt(
-    curl, CURLOPT_URL, (REQ_HOST[iter] + REQ_PATH[iter]).c_str());
-  genericRequestSettings(curl, iter, certificates, response);
+    curl,
+    CURLOPT_URL,
+    (data_handler.REQ_HOST[iter] + data_handler.REQ_PATH[iter]).c_str());
+  genericRequestSettings(curl, iter, certificates, response, data_handler);
 
   auto res = curl_easy_perform(curl);
 
@@ -249,13 +245,12 @@ std::vector<char> request(
   double sendTime = curTime.tv_sec + curTime.tv_usec / 1000000.0;
 
   curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total);
-  // times.push_back(total);
 
-  SEND_TIME.push_back(sendTime);
-  RESPONSE_TIME.push_back(sendTime + total);
+  data_handler.SEND_TIME.push_back(sendTime);
+  data_handler.RESPONSE_TIME.push_back(sendTime + total);
 
   std::string resp_string(response.begin(), response.end());
-  RAW_RESPONSE.push_back(resp_string);
+  data_handler.RAW_RESPONSE.push_back(resp_string);
 
   return response;
 }
@@ -270,21 +265,22 @@ int main(int argc, char** argv)
 {
   ArgumentParser args;
   args.argument_assigner(argc, argv);
+  ParquetData data_handler;
 
   std::vector<string> certificates = {args.cert, args.key, args.rootCa};
 
-  // std::vector<float> times;
-
-  readParquetFile(args.generatorFilename);
+  readParquetFile(args.generatorFilename, data_handler);
+  cout << data_handler.IDS.size() << endl;
 
   if (!args.isMulitplex)
   {
     // REQUEST BY REQUEST
     CURL* curl = curl_easy_init();
     curl_global_init(CURL_GLOBAL_ALL);
-    for (int iter = 0; iter < IDS.size(); ++iter)
+    for (int iter = 0; iter < data_handler.IDS.size(); ++iter)
     {
-      std::vector<char> response = request(curl, iter, certificates);
+      std::vector<char> response =
+        request(curl, iter, certificates, data_handler);
       // for (auto& n : response)
       //   std::cout << n;
       // cout << endl;
@@ -297,21 +293,23 @@ int main(int argc, char** argv)
     // MULTIPLEX
     CURLM* multi_handle = curl_multi_init();
     int still_running = 0;
-    std::vector<char> responsesVec[IDS.size()];
-    struct transfer ts[IDS.size()];
+    std::vector<char> responsesVec[data_handler.IDS.size()];
+    struct transfer ts[data_handler.IDS.size()];
     timeval curTime; // Store timestamp of multiple send
 
-    for (int iter = 0; iter < IDS.size(); iter++)
+    for (int iter = 0; iter < data_handler.IDS.size(); iter++)
     {
       CURL* curl;
       curl = ts[iter].easy = curl_easy_init();
-      genericRequestSettings(curl, iter, certificates, responsesVec[iter]);
+      genericRequestSettings(
+        curl, iter, certificates, responsesVec[iter], data_handler);
 
       curl_easy_setopt(curl, CURLOPT_PIPEWAIT, 1L);
       curl_multi_add_handle(multi_handle, curl);
     }
 
-    if (REQ_TYPE[0] == "HTTP/2") // Assuming all the requests have the same type
+    if (data_handler.REQ_TYPE[0] == "HTTP/2") // Assuming all the requests have
+                                              // the same type
     {
       curl_multi_setopt(multi_handle, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
     }
@@ -337,30 +335,30 @@ int main(int argc, char** argv)
       }
     } while (still_running);
 
-    for (int i = 0; i < IDS.size(); i++)
+    for (int i = 0; i < data_handler.IDS.size(); i++)
     {
       double total;
       curl_easy_getinfo(ts[i].easy, CURLINFO_TOTAL_TIME, &total);
       double sendTime = curTime.tv_sec + curTime.tv_usec / 1000000.0;
-      SEND_TIME.push_back(sendTime);
-      RESPONSE_TIME.push_back(sendTime + total);
+      data_handler.SEND_TIME.push_back(sendTime);
+      data_handler.RESPONSE_TIME.push_back(sendTime + total);
 
       if (responsesVec[i].size() > 0)
       {
         std::string resp_string(responsesVec[i].begin(), responsesVec[i].end());
-        RAW_RESPONSE.push_back(resp_string);
+        data_handler.RAW_RESPONSE.push_back(resp_string);
       }
       else
       {
         long http_code = 0;
         curl_easy_getinfo(ts[i].easy, CURLINFO_RESPONSE_CODE, &http_code);
-        RAW_RESPONSE.push_back(to_string(http_code));
+        data_handler.RAW_RESPONSE.push_back(to_string(http_code));
       }
       curl_multi_remove_handle(multi_handle, ts[i].easy);
       curl_easy_cleanup(ts[i].easy);
     }
   }
 
-  writeSendParquetFile(args.sendFilename);
-  writeResponseParquetFile(args.responseFilename);
+  writeSendParquetFile(args.sendFilename, data_handler);
+  writeResponseParquetFile(args.responseFilename, data_handler);
 }

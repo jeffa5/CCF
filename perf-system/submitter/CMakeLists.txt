@@ -10,7 +10,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L /home/fotisk/lib/")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--rpath=/home/fotisk/lib")
 
 
-add_executable(submit submit.cpp handle_arguments.cpp handle_arguments.hpp)
+add_executable(submit 
+                submit.cpp 
+                handle_arguments.cpp 
+                handle_arguments.hpp 
+                parquet_data.cpp
+                parquet_data.hpp)
 
 target_link_libraries(submit PRIVATE arrow)
 target_link_libraries(submit PRIVATE parquet)

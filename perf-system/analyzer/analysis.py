@@ -96,7 +96,11 @@ def make_analysis(send_file, response_file):
     print(generic_output_table)
     print(latency_output_table)
 
-    time_unit = [x - df_sends["sendTime"][0] + 1 for x in df_sends["sendTime"]]
+    time_unit = [
+        # x - df_sends["sendTime"][0] + 1 for x in df_sends["sendTime"]
+        x - df_responses["receiveTime"][0] + 1
+        for x in df_responses["receiveTime"]
+    ]
     plt.scatter(time_unit, ms_time_spent_list, s=1)
     plt.ylabel("Latency_ms")
     plt.savefig("latency.png")
