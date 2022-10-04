@@ -42,7 +42,8 @@ In the **CCF/perf-system/submitter** there are two submitter components one writ
 ### C++
 
 For the **C++** submitter you first need to download and build the arrow and parquet libraries from the following repository `https://github.com/apache/arrow`.
-For a quick guide to build the above repo please use the following commands   
+For a quick guide to build the above repo please use the following commands
+
 ```sh
 git clone https://github.com/apache/arrow.git
 cd arrow/cpp
@@ -52,11 +53,13 @@ cmake .. -DCMAKE_INSTALL_PREFIX=/path/to/install -DARROW_FILESYSTEM=ON -DARROW_P
 make
 make install
 ```
-Take extra care with the options given to cmake command. `-DARROW_FILESYSTEM=ON` and `-DARROW_PARQUET=ON` will install the necessary libraries in addition to arrow, needed for the submitter execution. 
+
+Take extra care with the options given to cmake command. `-DARROW_FILESYSTEM=ON` and `-DARROW_PARQUET=ON` will install the necessary libraries in addition to arrow, needed for the submitter execution.
 
 The `/path/to/install` provided for your system is necessary for the CMake file of our project. Replace inside the **CCF/perf-system/CmakeLists.txt** in lines 7, 9 and 10 the absolute paths `/home/fotisk/include/` and `/home/fotisk/lib/` to `/path/to/install/include/` and `/path/to/install/lib/` respectively.
 
 After installing arrow and changing CMakeLists.txt accordingly follow the commands below to run your program
+
 ```sh
 mkdir build
 cd build
@@ -65,9 +68,10 @@ make
 cd ..
 ./build/submit -manual_configurations
 ```
+
 You can provide certification files or configure import/export files by replacing `-manual_configurations` in the latest command with one or more of the following options, providing after each option the corresponsing argument (where necessary).
 
-- `-c`: Followed by the path to the certificate file 
+- `-c`: Followed by the path to the certificate file
 - `-k`: Followed by the path to the private key file
 - `-ca`: Followed by the path to the specified certificate file to verify the peer
 - `-gf`: Followed by the path to the file that contains the requests to be submitted. Default file `../generator/requests.parquet`
@@ -75,8 +79,7 @@ You can provide certification files or configure import/export files by replacin
 - `-rf`: Followed by the path to the parquet file to store the responses from the requests that have been submitted. Default file `./cpp_responses.parquet`.
 - `-multiplex`: The existence of this option will force the submitter to send http2 requests using multiplex.
 
-
-### Python 
+### Python
 
 To run the submitter writtern in **Python** you need to run from the current directory the following command
 

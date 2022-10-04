@@ -74,9 +74,9 @@ python3.8 "$SCRIPT_DIR"/notice-check.py
 echo "$CHECK_DELIMITER"
 echo "-- CMake format"
 if [ $FIX -ne 0 ]; then
-  "$SCRIPT_DIR"/check-cmake-format.sh -f cmake samples src tests CMakeLists.txt
+  "$SCRIPT_DIR"/check-cmake-format.sh -f cmake samples src tests perf-system CMakeLists.txt
 else
-  "$SCRIPT_DIR"/check-cmake-format.sh cmake samples src tests CMakeLists.txt
+  "$SCRIPT_DIR"/check-cmake-format.sh cmake samples src tests perf-system CMakeLists.txt
 fi
 
 echo "$CHECK_DELIMITER"

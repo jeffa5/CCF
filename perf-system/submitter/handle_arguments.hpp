@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the Apache 2.0 License.
+
 #ifndef HANDLE_ARGUMENTS_H
 #define HANDLE_ARGUMENTS_H
 #include <iostream>
