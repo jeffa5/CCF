@@ -25,8 +25,8 @@ def make_analysis(send_file, response_file):
     time_spent_list = []
     ms_time_spent_sum = 0
 
-    # the number of rows in both dfs is the same
     for i in range(len(df_sends.index)):
+        # the number of rows in both dfs is the same
         assert (
             df_sends.iloc[i]["messageID"] == df_responses.iloc[i]["messageID"]
         ), "the IDs do not match"
@@ -34,20 +34,23 @@ def make_analysis(send_file, response_file):
         req_resp = df_responses.iloc[i]["rawResponse"].split("\n")
         status_list = req_resp[0].split(" ")
         req_type_received = status_list[0]
+        # if we get a full statues and says ok increase the successful
         if len(status_list) > 2 and (
             status_list[2][:2] == "OK" or status_list[1][:3] == "200"
         ):
             successful_reqs += 1
+
         time_spent_list.append(
             df_responses.iloc[i]["receiveTime"] - df_sends.iloc[i]["sendTime"]
         )
 
     successful_percent = successful_reqs / len(df_sends.index) * 100
-    ms_time_spent_list = [x * 1000 for x in time_spent_list]
-    ms_time_spent_sum = sum(ms_time_spent_list)
 
-    # FOR MULTIPLEXING IS DIFFERENT TIME_SPENT
-    ms_time_spent_sum = ms_time_spent_list[-1]
+    # time_spent is always: last timestamp of responses - first timestamp of sends
+    time_spent = df_responses.iloc[-1]["receiveTime"] - df_sends.iloc[0]["sendTime"]
+
+    ms_time_spent_list = [x * 1000 for x in time_spent_list]
+    ms_time_spent_sum = time_spent * 1000
 
     generic_output_table = PrettyTable()
     generic_output_table.field_names = [
@@ -60,10 +63,10 @@ def make_analysis(send_file, response_file):
     generic_output_table.add_row(
         [
             len(df_sends.index),
-            round(ms_time_spent_sum / 1000, 1),
+            round(ms_time_spent_sum / 1000, 3),
             round(successful_percent, 1),
             round(100 - successful_percent, 1),
-            round(len(df_sends.index) / ms_time_spent_sum * 1000, 1),
+            round(len(df_sends.index) / time_spent, 1),
         ]
     )
     latency_output_table = PrettyTable()
@@ -90,9 +93,10 @@ def make_analysis(send_file, response_file):
 
     print("The request type sent is ", req_type_received)
 
-    time_unit = [x - df_sends["sendTime"][0] + 1 for x in df_sends["sendTime"]]
     print(generic_output_table)
     print(latency_output_table)
+
+    time_unit = [x - df_sends["sendTime"][0] + 1 for x in df_sends["sendTime"]]
     plt.scatter(time_unit, ms_time_spent_list, s=1)
     plt.ylabel("Latency_ms")
     plt.savefig("latency.png")
@@ -103,8 +107,8 @@ def main():
     The function to receive the arguments
     from the command line
     """
-    arg_send_file = "../submitter/cpp_sends.parquet"
-    arg_response_file = "../submitter/cpp_responses.parquet"
+    arg_send_file = "../submitter/cpp_send.parquet"
+    arg_response_file = "../submitter/cpp_respond.parquet"
 
     parser = argparse.ArgumentParser()
     parser.add_argument(

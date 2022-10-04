@@ -106,7 +106,7 @@ python3 analysis.py
 
 When running the analyzer you have the following options to specify the exported files:
 
-- `-sf, --send_file`: Name of the parquet file for the requests that have been submitted. Default file `../submitter/cpp_sends.parquet`.
-- `-rf, --response_file`: Name of the parquet file for the responses from the requests that have been submitted. Default file `../submitter/cpp_responses.parquet`.
+- `-sf, --send_file`: Name of the parquet file for the requests that have been submitted. Default file `../submitter/cpp_send.parquet`.
+- `-rf, --response_file`: Name of the parquet file for the responses from the requests that have been submitted. Default file `../submitter/cpp_respond.parquet`.
 
 After the execution, in the command prompt will be written two tables with some metrics and in the current directory there will be exported an image plotting the latency of the requests.
