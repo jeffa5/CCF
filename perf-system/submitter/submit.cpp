@@ -332,7 +332,6 @@ int main(int argc, char** argv)
 
     if (data_handler.REQ_TYPE[0] == "HTTP/2") // Assuming all the requests
                                               // have the same type
-
     {
       for (int pack = 0; pack < request_packs; pack++)
       {
@@ -376,13 +375,18 @@ int main(int argc, char** argv)
     for (int i = 0; i < data_handler.IDS.size(); i++)
     {
       int pack_item = i / MAX_CONNECTIONS_IN_MULTI_OR_PIPELINE;
+      double start_transfer;
       double total;
       curl_easy_getinfo(ts[i], CURLINFO_TOTAL_TIME, &total);
+      curl_easy_getinfo(ts[i], CURLINFO_STARTTRANSFER_TIME, &start_transfer);
       double sendTime =
         curTime[pack_item].tv_sec + curTime[pack_item].tv_usec / 1000000.0;
       data_handler.SEND_TIME.push_back(sendTime);
-      data_handler.RESPONSE_TIME.push_back(sendTime + total);
-
+      data_handler.RESPONSE_TIME.push_back(sendTime + (total - start_transfer));
+      // cout << fixed << total << " " << total - start_transfer << endl;
+      //      << curTime[pack_item].tv_sec + curTime[pack_item].tv_usec /
+      //      1000000.0
+      //      << " " << total << " " << pack_item << " " << i << endl;
       if (responsesVec[i].size() > 0)
       {
         std::string resp_string(responsesVec[i].begin(), responsesVec[i].end());
