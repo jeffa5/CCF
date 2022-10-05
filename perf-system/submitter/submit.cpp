@@ -17,6 +17,8 @@
 #include <parquet/stream_writer.h>
 #include <vector>
 
+#define MAX_CONNECTIONS_IN_MULTI_OR_PIPELINE 1000
+
 using namespace std;
 
 std::vector<std::string> splitString(const std::string& str, char splitter)
@@ -303,55 +305,81 @@ int main(int argc, char** argv)
   }
   else
   {
+    int request_packs =
+      data_handler.IDS.size() / MAX_CONNECTIONS_IN_MULTI_OR_PIPELINE + 1;
     // MULTIPLEX
-    CURLM* multi_handle = curl_multi_init();
-    int still_running = 0;
+    CURLM* multi_handle[request_packs];
+    int still_running[request_packs];
+    timeval curTime[request_packs]; // Store timestamp of multiple send
     std::vector<char> responsesVec[data_handler.IDS.size()];
     CURL* ts[data_handler.IDS.size()];
-    timeval curTime; // Store timestamp of multiple send
 
+    for (int pack = 0; pack < request_packs; pack++)
+    {
+      multi_handle[pack] = curl_multi_init();
+      still_running[pack] = 0;
+    }
     for (int iter = 0; iter < data_handler.IDS.size(); iter++)
     {
+      int general_iter = iter / MAX_CONNECTIONS_IN_MULTI_OR_PIPELINE;
       ts[iter] = curl_easy_init();
       genericRequestSettings(
         ts[iter], iter, certificates, responsesVec[iter], data_handler);
 
       curl_easy_setopt(ts[iter], CURLOPT_PIPEWAIT, 1L);
-      curl_multi_add_handle(multi_handle, ts[iter]);
+      curl_multi_add_handle(multi_handle[general_iter], ts[iter]);
     }
 
-    if (data_handler.REQ_TYPE[0] == "HTTP/2") // Assuming all the requests have
-                                              // the same type
+    if (data_handler.REQ_TYPE[0] == "HTTP/2") // Assuming all the requests
+                                              // have the same type
+
     {
-      curl_multi_setopt(multi_handle, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
+      for (int pack = 0; pack < request_packs; pack++)
+      {
+        curl_multi_setopt(
+          multi_handle[pack], CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
+      }
     }
     else
     {
-      curl_multi_setopt(multi_handle, CURLMOPT_PIPELINING, CURLPIPE_HTTP1);
+      for (int pack = 0; pack < request_packs; pack++)
+      {
+        curl_multi_setopt(
+          multi_handle[pack], CURLMOPT_PIPELINING, CURLPIPE_HTTP1);
+      }
     }
 
-    do
+    cout << "Start submitting requests" << endl;
+
+    for (int pack = 0; pack < request_packs; pack++)
     {
-      // Get timestamp of multiplex/pipelining multi-send
-      gettimeofday(&curTime, NULL);
-      CURLMcode mc = curl_multi_perform(multi_handle, &still_running);
-
-      if (still_running)
-        /* wait for activity, timeout or "nothing" */
-        mc = curl_multi_poll(multi_handle, NULL, 0, 1000, NULL);
-
-      if (mc)
+      do
       {
-        cout << "mc status: " << mc << endl << "Exiting" << endl;
-        exit(0);
-      }
-    } while (still_running);
+        // Get timestamp of multiplex/pipelining multi-send
+        gettimeofday(&curTime[pack], NULL);
+        CURLMcode mc =
+          curl_multi_perform(multi_handle[pack], &still_running[pack]);
+
+        if (still_running[pack])
+          /* wait for activity, timeout or "nothing" */
+          mc = curl_multi_poll(multi_handle[pack], NULL, 0, 1000, NULL);
+
+        if (mc)
+        {
+          cout << "mc status: " << mc << endl << "Exiting" << endl;
+          exit(0);
+        }
+      } while (still_running[pack]);
+    }
+    cout << "Finished submitting requests" << endl;
 
     for (int i = 0; i < data_handler.IDS.size(); i++)
     {
+      int pack_item = i / MAX_CONNECTIONS_IN_MULTI_OR_PIPELINE;
       double total;
       curl_easy_getinfo(ts[i], CURLINFO_TOTAL_TIME, &total);
-      double sendTime = curTime.tv_sec + curTime.tv_usec / 1000000.0;
+      double sendTime =
+        curTime[pack_item].tv_sec + curTime[pack_item].tv_usec / 1000000.0;
       data_handler.SEND_TIME.push_back(sendTime);
       data_handler.RESPONSE_TIME.push_back(sendTime + total);
 
@@ -366,11 +394,13 @@ int main(int argc, char** argv)
         curl_easy_getinfo(ts[i], CURLINFO_RESPONSE_CODE, &http_code);
         data_handler.RAW_RESPONSE.push_back(to_string(http_code));
       }
-      curl_multi_remove_handle(multi_handle, ts[i]);
+      curl_multi_remove_handle(multi_handle[pack_item], ts[i]);
       curl_easy_cleanup(ts[i]);
     }
   }
 
+  cout << "Start storing results" << endl;
   writeSendParquetFile(args.sendFilename, data_handler);
   writeResponseParquetFile(args.responseFilename, data_handler);
+  cout << "Finished storing results" << endl;
 }
