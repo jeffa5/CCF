@@ -5,7 +5,6 @@ Provide metrics based on the requests sent
 """
 
 import argparse
-from time import time
 import pandas as pd  # type: ignore
 
 # pylint: disable=import-error
