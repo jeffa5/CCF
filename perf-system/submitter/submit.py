@@ -84,11 +84,11 @@ def write_response(resp, df_responses, end_time, i, last_index):
         resp.url.scheme
         + str(resp.version.major)
         + str(resp.version.minor)
-        + "$"
+        + " "
         + str(resp.status)
-        + "$"
+        + " "
         + resp.reason
-        + "$"
+        + "\n"
         + str(resp.raw_headers),
     ]
 
