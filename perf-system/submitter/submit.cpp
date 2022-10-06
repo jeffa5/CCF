@@ -257,17 +257,11 @@ std::vector<char> submitSingleRequest(
   return response;
 }
 
-struct transfer
-{
-  CURL* easy;
-};
-
 int main(int argc, char** argv)
 {
   ArgumentParser args;
   args.argument_assigner(argc, argv);
   ParquetData data_handler;
-  cout << args.duration << endl;
 
   std::vector<string> certificates = {args.cert, args.key, args.rootCa};
 
@@ -306,9 +300,9 @@ int main(int argc, char** argv)
   }
   else
   {
+    // MULTIPLEX
     int request_packs =
       data_handler.IDS.size() / MAX_CONNECTIONS_IN_MULTI_OR_PIPELINE + 1;
-    // MULTIPLEX
     CURLM* multi_handle[request_packs];
     int still_running[request_packs];
     timeval curTime[request_packs]; // Store timestamp of multiple send
@@ -319,6 +313,7 @@ int main(int argc, char** argv)
     {
       multi_handle[pack] = curl_multi_init();
       still_running[pack] = 0;
+      curl_multi_setopt(multi_handle[pack], CURLMOPT_MAX_HOST_CONNECTIONS, 1L);
     }
     for (int iter = 0; iter < data_handler.IDS.size(); iter++)
     {
@@ -384,17 +379,14 @@ int main(int argc, char** argv)
         curTime[pack_item].tv_sec + curTime[pack_item].tv_usec / 1000000.0;
       data_handler.SEND_TIME.push_back(sendTime);
       data_handler.RESPONSE_TIME.push_back(sendTime + (total - start_transfer));
-      // cout << fixed << total << " " << total - start_transfer << endl;
-      //      << curTime[pack_item].tv_sec + curTime[pack_item].tv_usec /
-      //      1000000.0
-      //      << " " << total << " " << pack_item << " " << i << endl;
       if (responsesVec[i].size() > 0)
       {
         std::string resp_string(responsesVec[i].begin(), responsesVec[i].end());
         data_handler.RAW_RESPONSE.push_back(resp_string);
       }
       else
-      {
+      { // Remember you may need to close the connections earlier to prevent
+        // max_open_sessions_soft error
         long http_code = 0;
         curl_easy_getinfo(ts[i], CURLINFO_RESPONSE_CODE, &http_code);
         data_handler.RAW_RESPONSE.push_back(to_string(http_code));
