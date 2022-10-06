@@ -133,19 +133,20 @@ def make_analysis(send_file, response_file):
     plt.ylabel("Latency_ms")
     plt.xlabel("ids")
     plt.savefig("latency_per_id.png")
-
+    plt.figure(figsize=(15, 15), dpi=80)
     # plot latency with time
     plt.figure(2)
     plt.scatter(time_unit, ms_time_spent_list, s=1)
     plt.ylabel("Latency(ms)")
     plt.xlabel("time(s)")
     plt.savefig("latency_across_time.png")
+    plt.figure(figsize=(15, 15), dpi=80)
 
     # plot throughput with time
     plt.figure(3)
     plt.plot(time_in_100ms_parts, throughput_per_100ms)
     plt.ylabel("Throughput(req/s)")
-    plt.xlabel("time(s)")
+    plt.xlabel("time(ms)")
     plt.savefig("throughput_across_time.png")
 
     print("\n", "".join(x), "Finished plotting", "".join(x))

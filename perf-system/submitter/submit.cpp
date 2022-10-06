@@ -17,7 +17,7 @@
 #include <parquet/stream_writer.h>
 #include <vector>
 
-#define MAX_CONNECTIONS_IN_MULTI_OR_PIPELINE 1000
+#define MAX_CONNECTIONS_IN_MULTI_OR_PIPELINE 500
 
 using namespace std;
 
@@ -91,9 +91,11 @@ void readParquetFile(string generatorFilename, ParquetData& data_handler)
     data_handler.REQ_PATH.push_back(splitted_req.at(2));
     data_handler.REQ_TYPE.push_back(splitted_req.at(3));
     data_handler.REQ_HEADER.push_back(splitted_req.at(4));
-    data_handler.REQ_LENGTH.push_back(splitted_req.at(5));
     if (splitted_req.size() > 6)
+    {
+      data_handler.REQ_LENGTH.push_back(splitted_req.at(5));
       data_handler.REQ_DATA.push_back(splitted_req.at(6));
+    }
     else
       data_handler.REQ_DATA.push_back("");
   }
@@ -237,19 +239,16 @@ std::vector<char> submitSingleRequest(
     (data_handler.REQ_HOST[iter] + data_handler.REQ_PATH[iter]).c_str());
   genericRequestSettings(curl, iter, certificates, response, data_handler);
 
-  auto res = curl_easy_perform(curl);
-
   double total;
-  double start_transfer;
   timeval curTime;
   gettimeofday(&curTime, NULL);
+  auto res = curl_easy_perform(curl);
 
   double sendTime = curTime.tv_sec + curTime.tv_usec / 1000000.0;
-  curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &start_transfer);
   curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total);
 
   data_handler.SEND_TIME.push_back(sendTime);
-  data_handler.RESPONSE_TIME.push_back(sendTime + (total - start_transfer));
+  data_handler.RESPONSE_TIME.push_back(sendTime + total);
 
   std::string resp_string(response.begin(), response.end());
   data_handler.RAW_RESPONSE.push_back(resp_string);
@@ -266,7 +265,7 @@ int main(int argc, char** argv)
   std::vector<string> certificates = {args.cert, args.key, args.rootCa};
 
   readParquetFile(args.generatorFilename, data_handler);
-
+  curl_global_init(CURL_GLOBAL_DEFAULT);
   if (!args.isMulitplex)
   {
     // REQUEST BY REQUEST
@@ -313,7 +312,7 @@ int main(int argc, char** argv)
     {
       multi_handle[pack] = curl_multi_init();
       still_running[pack] = 0;
-      curl_multi_setopt(multi_handle[pack], CURLMOPT_MAX_HOST_CONNECTIONS, 1L);
+      curl_multi_setopt(multi_handle[pack], CURLMOPT_MAX_HOST_CONNECTIONS, 3L);
     }
     for (int iter = 0; iter < data_handler.IDS.size(); iter++)
     {
@@ -385,7 +384,7 @@ int main(int argc, char** argv)
         data_handler.RAW_RESPONSE.push_back(resp_string);
       }
       else
-      { // Remember you may need to close the connections earlier to prevent
+      { // You may need to close the connections earlier to prevent
         // max_open_sessions_soft error
         long http_code = 0;
         curl_easy_getinfo(ts[i], CURLINFO_RESPONSE_CODE, &http_code);
@@ -394,8 +393,8 @@ int main(int argc, char** argv)
       curl_multi_remove_handle(multi_handle[pack_item], ts[i]);
       curl_easy_cleanup(ts[i]);
     }
+    curl_global_cleanup();
   }
-
   cout << "Start storing results" << endl;
   writeSendParquetFile(args.sendFilename, data_handler);
   writeResponseParquetFile(args.responseFilename, data_handler);
