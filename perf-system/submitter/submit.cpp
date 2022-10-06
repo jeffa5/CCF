@@ -240,15 +240,16 @@ std::vector<char> submitSingleRequest(
   auto res = curl_easy_perform(curl);
 
   double total;
+  double start_transfer;
   timeval curTime;
   gettimeofday(&curTime, NULL);
 
   double sendTime = curTime.tv_sec + curTime.tv_usec / 1000000.0;
-
+  curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &start_transfer);
   curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total);
 
   data_handler.SEND_TIME.push_back(sendTime);
-  data_handler.RESPONSE_TIME.push_back(sendTime + total);
+  data_handler.RESPONSE_TIME.push_back(sendTime + (total - start_transfer));
 
   std::string resp_string(response.begin(), response.end());
   data_handler.RAW_RESPONSE.push_back(resp_string);
@@ -352,10 +353,10 @@ int main(int argc, char** argv)
 
     for (int pack = 0; pack < request_packs; pack++)
     {
+      // Get timestamp of multiplex/pipelining multi-send
+      gettimeofday(&curTime[pack], NULL);
       do
       {
-        // Get timestamp of multiplex/pipelining multi-send
-        gettimeofday(&curTime[pack], NULL);
         CURLMcode mc =
           curl_multi_perform(multi_handle[pack], &still_running[pack]);
 

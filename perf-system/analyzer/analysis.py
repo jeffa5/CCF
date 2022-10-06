@@ -102,10 +102,16 @@ def make_analysis(send_file, response_file):
 
     id_unit = [x for x in range(0, len(df_sends.index))]
     lat_unit = ms_time_spent_list
+    plt.figure(1)
     plt.scatter(id_unit, lat_unit, s=1)
     plt.ylabel("Latency_ms")
     plt.xlabel("ids")
-    plt.savefig("latency.png")
+    plt.savefig("latency_per_id.png")
+    plt.figure(2)
+    plt.scatter(time_unit, ms_time_spent_list, s=1)
+    plt.ylabel("Latency(ms)")
+    plt.xlabel("time(s)")
+    plt.savefig("latency_across_time.png")
 
 
 def main():

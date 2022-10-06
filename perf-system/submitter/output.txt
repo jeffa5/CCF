@@ -1,7 +1,0 @@
--1
-Read generator file
-Opened generator file
-Start submitting requests
-Finished submitting requests
-Start storing results
-Finished storing results
