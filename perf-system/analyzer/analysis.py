@@ -5,13 +5,13 @@ Provide metrics based on the requests sent
 """
 
 import argparse
+from time import time
 import pandas as pd  # type: ignore
 
 # pylint: disable=import-error
 from prettytable import PrettyTable  # type: ignore
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
 
 
 def make_analysis(send_file, response_file):
@@ -96,22 +96,60 @@ def make_analysis(send_file, response_file):
     print(generic_output_table)
     print(latency_output_table)
 
+    x = ["-"] * 20
+    print("\n", "".join(x), " Start plotting  ", "".join(x))
     time_unit = [
         x - df_responses["receiveTime"][0] + 1 for x in df_responses["receiveTime"]
     ]
 
     id_unit = [x for x in range(0, len(df_sends.index))]
     lat_unit = ms_time_spent_list
+
+    # sort the latencies as it make sense to get the throughput
+    # by time unit ignoring the ids
+    sorted_latencies = sorted(df_responses["receiveTime"].tolist())
+    idxes_100ms = [0]
+    for i, lat in enumerate(sorted_latencies):
+        if lat > sorted_latencies[idxes_100ms[-1]] + 0.1:
+            idxes_100ms.append(i)
+
+    req_per_100ms = []
+    time_in_100ms_parts = []
+    if len(idxes_100ms) > 1:
+        for i in range(len(idxes_100ms) - 1):
+            req_per_100ms.append(idxes_100ms[i + 1] - idxes_100ms[i])
+            time_in_100ms_parts.append(100 * (i + 1))
+        req_per_100ms.append(len(sorted_latencies) - 1 - idxes_100ms[-1])
+        time_in_100ms_parts.append(
+            time_in_100ms_parts[-1]
+            + int((sorted_latencies[-1] - sorted_latencies[idxes_100ms[-1]]) * 1000)
+        )
+    throughput_per_100ms = [
+        x * 10 for x in req_per_100ms
+    ]  # x*10 because is 0.1s per input
+
+    # plot latency with ids
     plt.figure(1)
     plt.scatter(id_unit, lat_unit, s=1)
     plt.ylabel("Latency_ms")
     plt.xlabel("ids")
     plt.savefig("latency_per_id.png")
+
+    # plot latency with time
     plt.figure(2)
     plt.scatter(time_unit, ms_time_spent_list, s=1)
     plt.ylabel("Latency(ms)")
     plt.xlabel("time(s)")
     plt.savefig("latency_across_time.png")
+
+    # plot throughput with time
+    plt.figure(3)
+    plt.plot(time_in_100ms_parts, throughput_per_100ms)
+    plt.ylabel("Throughput(req/s)")
+    plt.xlabel("time(s)")
+    plt.savefig("throughput_across_time.png")
+
+    print("\n", "".join(x), "Finished plotting", "".join(x))
 
 
 def main():
