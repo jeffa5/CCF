@@ -17,3 +17,6 @@ add_executable(
 target_link_libraries(submit PRIVATE arrow)
 target_link_libraries(submit PRIVATE parquet)
 target_link_libraries(submit PRIVATE curl)
+target_link_libraries(submit PRIVATE uv)
+target_link_libraries(submit PRIVATE ssl)
+target_link_libraries(submit PRIVATE crypto)
