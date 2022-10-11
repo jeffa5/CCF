@@ -280,15 +280,6 @@ static void on_alloc(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf)
   buf->len = suggested_size;
 }
 
-// /* global for simplicity */
-// int streams_going = 1;
-
-// static void on_close(uv_handle_t* handle)
-// {
-//   printf("on_close\n");
-//   streams_going--;
-// }
-
 static void on_write(uv_write_t* req, int status)
 {
   cout << "write " << status << endl;
@@ -296,6 +287,7 @@ static void on_write(uv_write_t* req, int status)
 
 void on_read(uv_stream_t* client, ssize_t nread, const uv_buf_t* buf)
 {
+  cout << "read " << nread << endl;
   if (nread < 0)
   {
     if (nread != UV_EOF)
@@ -324,18 +316,20 @@ void alloc_buffer(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf)
 
 static void on_connect(uv_connect_t* connection, int status)
 {
+  cout << "connect" << endl;
   uv_stream_t* stream = connection->handle;
-  int send_packs = 10;
+  int send_packs = 1;
   uv_write_t requests[send_packs];
   uv_buf_t https[send_packs];
+  string req = "GET /app/log/private?id=42 HTTP/1.1\r\n\r\n";
   for (int i = 0; i < send_packs; i++)
   {
-    https[i].base = "GET /love HTTP/1.1\r\n\r\n";
-    https[i].len = 22;
+    https[i].base = const_cast<char*>(req.c_str());
+    https[i].len = req.length();
   }
   for (int i = 0; i < send_packs; i++)
   {
-    uv_write(&requests[i], stream, &https[i], 10, on_write);
+    uv_write(&requests[i], stream, &https[i], send_packs, on_write);
     uv_read_start(stream, on_alloc, on_read);
   }
 }
@@ -376,23 +370,39 @@ int main(int argc, char** argv)
 
   const char* CLIENT_CERT_FILE = args.cert.c_str();
   const char* CLIENT_KEY_FILE = args.key.c_str();
+  const char* ROOT_CA_FILE = args.rootCa.c_str();
 
   SSL_library_init();
   SSL_load_error_strings();
   BIO* bio_err = BIO_new_fp(stderr, BIO_NOCLOSE);
   SSL_CTX* ssl_ctx = SSL_CTX_new(SSLv23_method());
+  int rc;
+  X509* cert;
+  BIO* bio;
 
-  int rc = SSL_CTX_use_certificate_chain_file(ssl_ctx, CLIENT_CERT_FILE);
+  bio = BIO_new(BIO_s_file());
+  if (BIO_read_filename(bio, ROOT_CA_FILE) <= 0)
+    cert = NULL;
+  if (!PEM_read_bio_X509(bio, &cert, 0, NULL))
+    printf("Cannot load extra-certs file");
+
+  rc = SSL_CTX_use_certificate_chain_file(ssl_ctx, CLIENT_CERT_FILE);
   if (rc != 1)
   {
     printf("Could not load client certificate file.\n");
     ::exit(1);
   }
-
   rc = SSL_CTX_use_PrivateKey_file(ssl_ctx, CLIENT_KEY_FILE, SSL_FILETYPE_PEM);
   if (!rc)
   {
     printf("Could not load client key file.\n");
+    ::exit(1);
+  }
+
+  rc = SSL_CTX_add_extra_chain_cert(ssl_ctx, cert);
+  if (!rc)
+  {
+    printf("Could not load root ca file.\n");
     ::exit(1);
   }
 
@@ -409,10 +419,7 @@ int main(int argc, char** argv)
   uv_tcp_init(loop, handle);
   uv_connect_t* connect = (uv_connect_t*)malloc(sizeof(uv_connect_t));
   struct sockaddr_in dest;
-  uv_ip4_addr("http://127.0.0.1", 8080, &dest);
-
-  // if ((uv_tcp_bind(handle, (struct sockaddr*)&dest, 0)))
-  //   fprintf(stderr, "bind: %s\n");
+  uv_ip4_addr("https://127.0.0.1", 8000, &dest);
 
   uv_tcp_connect(connect, handle, (const struct sockaddr*)&dest, on_connect);
 
