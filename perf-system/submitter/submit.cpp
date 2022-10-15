@@ -441,29 +441,29 @@ int main(int argc, char** argv)
   ca_file = args.rootCa.c_str();
   auto conn = create_connection(false);
   // auto r = conn->call("tpcc_create");
-  cout << "1" << endl;
-  auto r = http::Request("/app/log/private?id=42", HTTP_GET);
-  // r.set_body(params.data(), params.size());
-  cout << "2" << endl;
+  auto r = http::Request("/app/log/private", HTTP_POST);
+  nlohmann::json params =
+    R"({"id": 43, "msg": "Logged to private table43"})"_json;
+  std::vector<uint8_t> body = serdes::pack(params, serdes::Pack::Text);
+  r.set_body(body.data(), body.size());
   r.set_header(
     http::headers::CONTENT_TYPE, http::headervalues::contenttype::JSON);
   r.set_header("Host", "127.0.0.1:8000");
 
-  cout << "3" << endl;
-  // auto key_pair = crypto::make_key_pair(key);
-  // cout << "3b" << endl;
-  // http::sign_request(r, key_pair, key_id);
-  // cout << "3c" << endl;
   auto dat = r.build_request();
-  cout << "4" << endl;
   conn->write(dat);
-  cout << "5" << endl;
   auto resp = conn->read_response();
-  cout << "6" << endl;
-  // cout << resp;
   string str_resp(resp.body.begin(), resp.body.end());
-  cout << str_resp << endl;
-
+  cout << "post\n" << str_resp << endl;
+  r = http::Request("/app/log/private?id=43", HTTP_GET);
+  r.set_header(
+    http::headers::CONTENT_TYPE, http::headervalues::contenttype::JSON);
+  r.set_header("Host", "127.0.0.1:8000");
+  dat = r.build_request();
+  conn->write(dat);
+  resp = conn->read_response();
+  string get_resp(resp.body.begin(), resp.body.end());
+  cout << "get\n" << get_resp << endl;
   // SSL_library_init();
   // SSL_load_error_strings();
   // BIO* bio_err = BIO_new_fp(stderr, BIO_NOCLOSE);
