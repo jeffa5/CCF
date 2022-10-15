@@ -2,12 +2,12 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "ccf/ds/logger.h"
-#include "ccf/ds/nonstd.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/logger.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/nonstd.h"
 
+#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/nlohmann/json.hpp>
 #include <charconv>
 #include <cmath>
-#include <nlohmann/json.hpp>
 #include <string>
 
 namespace ds

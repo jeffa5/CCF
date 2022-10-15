@@ -2,10 +2,10 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "ccf/ds/logger.h"
-#include "crypto/openssl/openssl_wrappers.h"
-#include "tls/ca.h"
-#include "tls/cert.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/logger.h"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/openssl_wrappers.h"
+#include "/home/fotisk/fotisCCf/CCF/src/tls/ca.h"
+#include "/home/fotisk/fotisCCf/CCF/src/tls/cert.h"
 
 #include <cstdint>
 #include <cstring>
@@ -156,10 +156,13 @@ namespace client
       for (size_t written = 0; written < b.size();)
       {
         auto ret = 0;
+        std::cout << b.data() << std::endl;
+        // std::cout << bio << std::endl;
         do
         {
           ret = BIO_write(bio, b.data() + written, b.size() - written);
         } while (ret < 0 && BIO_should_retry(bio));
+        // std::cout << ret << std::endl;
 
         if (ret >= 0)
         {

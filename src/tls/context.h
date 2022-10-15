@@ -2,10 +2,10 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "ccf/crypto/base64.h"
-#include "ccf/ds/logger.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/base64.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/logger.h"
+#include "/home/fotisk/fotisCCf/CCF/src/tls/tls.h"
 #include "cert.h"
-#include "tls/tls.h"
 
 #include <memory>
 #include <openssl/bio.h>

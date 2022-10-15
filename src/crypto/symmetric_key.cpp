@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the Apache 2.0 License.
 
-#include "crypto/openssl/symmetric_key.h"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/symmetric_key.h"
 
-#include "ccf/crypto/rsa_key_pair.h"
-#include "ccf/crypto/symmetric_key.h"
-#include "ds/serialized.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/rsa_key_pair.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/symmetric_key.h"
+#include "/home/fotisk/fotisCCf/CCF/src/ds/serialized.h"
 
 #define FMT_HEADER_ONLY
-#include <fmt/format.h>
+#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/format.h>
 
 namespace crypto
 {

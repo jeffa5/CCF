@@ -3,7 +3,7 @@
 
 #include "openssl/base64.h"
 
-#include "ccf/ds/logger.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/logger.h"
 
 namespace crypto
 {
@@ -29,8 +29,9 @@ namespace crypto
           break;
       }
     }
-    auto padding =
-      b64_string.size() % 4 == 2 ? 2 : b64_string.size() % 4 == 3 ? 1 : 0;
+    auto padding = b64_string.size() % 4 == 2 ? 2 :
+      b64_string.size() % 4 == 3              ? 1 :
+                                                0;
     b64_string += std::string(padding, '=');
     return raw_from_b64(b64_string);
   }
@@ -65,7 +66,7 @@ namespace crypto
 
     if (!with_padding)
     {
-      while (r.ends_with('='))
+      while (r.back() == '=')
       {
         r.pop_back();
       }

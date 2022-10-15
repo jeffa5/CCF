@@ -2,7 +2,7 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "ccf/crypto/entropy.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/entropy.h"
 
 #include <span>
 #include <vector>

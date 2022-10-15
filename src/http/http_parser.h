@@ -2,15 +2,15 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "ccf/ds/hex.h"
-#include "ccf/http_configuration.h"
-#include "enclave/tls_endpoint.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/hex.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/http_configuration.h"
+#include "/home/fotisk/fotisCCf/CCF/src/enclave/tls_endpoint.h"
 #include "http_builder.h"
 #include "http_proc.h"
 
+#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/llhttp/llhttp.h>
 #include <algorithm>
 #include <cctype>
-#include <llhttp/llhttp.h>
 #include <map>
 #include <queue>
 #include <regex>

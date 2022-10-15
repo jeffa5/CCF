@@ -1,14 +1,30 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the Apache 2.0 License.
 
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/base64.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/verifier.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/logger.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/service/node_info_network.h"
+#include "/home/fotisk/fotisCCf/CCF/src/clients/rpc_tls_client.h"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/base64.cpp"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/key_pair.cpp"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/base64.h"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/key_pair.cpp"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/public_key.cpp"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/public_key.h"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/rsa_public_key.cpp"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/verifier.cpp"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/sha256_hash.cpp"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/verifier.cpp"
+#include "/home/fotisk/fotisCCf/CCF/src/ds/files.h"
 #include "handle_arguments.hpp"
 #include "parquet_data.hpp"
 
+#include </home/fotisk/fotisCCf/CCF/perf-system/submitter/stdc++.h>
 #include <arrow/api.h>
 #include <arrow/array/array_binary.h>
 #include <arrow/filesystem/localfs.h>
 #include <arrow/io/file.h>
-#include <bits/stdc++.h>
 #include <chrono>
 #include <ctime>
 #include <curl/curl.h>
@@ -362,68 +378,144 @@ void dummy_ssl_msg_callback(
   printf("\tMessage callback with length: %zu\n", len);
 }
 
+using namespace client;
+
+crypto::Pem key = {};
+std::string key_id = "Invalid";
+std::shared_ptr<tls::Cert> tls_cert = nullptr;
+const char* cert_file;
+const char* key_file;
+const char* ca_file;
+string server_address = "127.0.0.1:8000";
+std::shared_ptr<RpcTlsClient> create_connection(bool force_unsigned = false)
+{
+  // Create a cert if this is our first rpc_connection
+  const bool is_first_time = tls_cert == nullptr;
+
+  if (is_first_time)
+  {
+    const auto raw_cert = files::slurp(cert_file);
+    const auto raw_key = files::slurp(key_file);
+    const auto ca = files::slurp_string(ca_file);
+
+    key = crypto::Pem(raw_key);
+
+    const crypto::Pem cert_pem(raw_cert);
+    auto cert_der = crypto::cert_pem_to_der(cert_pem);
+    key_id = crypto::Sha256Hash(cert_der).hex_str();
+
+    tls_cert =
+      std::make_shared<tls::Cert>(std::make_shared<tls::CA>(ca), cert_pem, key);
+  }
+
+  const auto [host, port] = ccf::split_net_address(server_address);
+  auto conn =
+    std::make_shared<RpcTlsClient>(host, port, nullptr, tls_cert, key_id);
+  auto sign = true;
+  if (sign && !force_unsigned)
+  {
+    LOG_INFO_FMT("Creating key pair");
+    conn->create_key_pair(key);
+  }
+
+  conn->set_prefix("app");
+
+  // Report ciphersuite of first client (assume it is the same for each)
+  if (is_first_time)
+  {
+    LOG_DEBUG_FMT(
+      "Connected to server via TLS ({})", conn->get_ciphersuite_name());
+  }
+
+  return conn;
+}
+
 int main(int argc, char** argv)
 {
   ArgumentParser args;
   args.argument_assigner(argc, argv);
   ParquetData data_handler;
 
-  const char* CLIENT_CERT_FILE = args.cert.c_str();
-  const char* CLIENT_KEY_FILE = args.key.c_str();
-  const char* ROOT_CA_FILE = args.rootCa.c_str();
+  cert_file = args.cert.c_str();
+  key_file = args.key.c_str();
+  ca_file = args.rootCa.c_str();
+  auto conn = create_connection(false);
+  // auto r = conn->call("tpcc_create");
+  cout << "1" << endl;
+  auto r = http::Request("/app/log/private?id=42", HTTP_GET);
+  // r.set_body(params.data(), params.size());
+  cout << "2" << endl;
+  r.set_header(
+    http::headers::CONTENT_TYPE, http::headervalues::contenttype::JSON);
+  r.set_header("Host", "127.0.0.1:8000");
 
-  SSL_library_init();
-  SSL_load_error_strings();
-  BIO* bio_err = BIO_new_fp(stderr, BIO_NOCLOSE);
-  SSL_CTX* ssl_ctx = SSL_CTX_new(SSLv23_method());
-  int rc;
-  X509* cert;
-  BIO* bio;
+  cout << "3" << endl;
+  // auto key_pair = crypto::make_key_pair(key);
+  // cout << "3b" << endl;
+  // http::sign_request(r, key_pair, key_id);
+  // cout << "3c" << endl;
+  auto dat = r.build_request();
+  cout << "4" << endl;
+  conn->write(dat);
+  cout << "5" << endl;
+  auto resp = conn->read_response();
+  cout << "6" << endl;
+  // cout << resp;
+  string str_resp(resp.body.begin(), resp.body.end());
+  cout << str_resp << endl;
 
-  bio = BIO_new(BIO_s_file());
-  if (BIO_read_filename(bio, ROOT_CA_FILE) <= 0)
-    cert = NULL;
-  if (!PEM_read_bio_X509(bio, &cert, 0, NULL))
-    printf("Cannot load extra-certs file");
+  // SSL_library_init();
+  // SSL_load_error_strings();
+  // BIO* bio_err = BIO_new_fp(stderr, BIO_NOCLOSE);
+  // SSL_CTX* ssl_ctx = SSL_CTX_new(SSLv23_method());
+  // int rc;
+  // X509* cert;
+  // BIO* bio;
 
-  rc = SSL_CTX_use_certificate_chain_file(ssl_ctx, CLIENT_CERT_FILE);
-  if (rc != 1)
-  {
-    printf("Could not load client certificate file.\n");
-    ::exit(1);
-  }
-  rc = SSL_CTX_use_PrivateKey_file(ssl_ctx, CLIENT_KEY_FILE, SSL_FILETYPE_PEM);
-  if (!rc)
-  {
-    printf("Could not load client key file.\n");
-    ::exit(1);
-  }
+  // bio = BIO_new(BIO_s_file());
+  // if (BIO_read_filename(bio, ROOT_CA_FILE) <= 0)
+  //   cert = NULL;
+  // if (!PEM_read_bio_X509(bio, &cert, 0, NULL))
+  //   printf("Cannot load extra-certs file");
 
-  rc = SSL_CTX_add_extra_chain_cert(ssl_ctx, cert);
-  if (!rc)
-  {
-    printf("Could not load root ca file.\n");
-    ::exit(1);
-  }
+  // rc = SSL_CTX_use_certificate_chain_file(ssl_ctx, CLIENT_CERT_FILE);
+  // if (rc != 1)
+  // {
+  //   printf("Could not load client certificate file.\n");
+  //   ::exit(1);
+  // }
+  // rc = SSL_CTX_use_PrivateKey_file(ssl_ctx, CLIENT_KEY_FILE,
+  // SSL_FILETYPE_PEM); if (!rc)
+  // {
+  //   printf("Could not load client key file.\n");
+  //   ::exit(1);
+  // }
 
-  SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
-  SSL_CTX_set_verify(
-    ssl_ctx,
-    SSL_VERIFY_NONE,
-    NULL); // no verify, testing libuv + openssl mem bios
-  SSL_CTX_set_info_callback(ssl_ctx, dummy_ssl_info_callback);
-  SSL_CTX_set_msg_callback(ssl_ctx, dummy_ssl_msg_callback);
+  // rc = SSL_CTX_add_extra_chain_cert(ssl_ctx, cert);
+  // if (!rc)
+  // {
+  //   printf("Could not load root ca file.\n");
+  //   ::exit(1);
+  // }
 
-  uv_loop_t* loop = uv_default_loop();
-  uv_tcp_t* handle = (uv_tcp_t*)malloc(sizeof(uv_tcp_t));
-  uv_tcp_init(loop, handle);
-  uv_connect_t* connect = (uv_connect_t*)malloc(sizeof(uv_connect_t));
-  struct sockaddr_in dest;
-  uv_ip4_addr("https://127.0.0.1", 8000, &dest);
+  // SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
+  // SSL_CTX_set_verify(
+  //   ssl_ctx,
+  //   SSL_VERIFY_NONE,
+  //   NULL); // no verify, testing libuv + openssl mem bios
+  // SSL_CTX_set_info_callback(ssl_ctx, dummy_ssl_info_callback);
+  // SSL_CTX_set_msg_callback(ssl_ctx, dummy_ssl_msg_callback);
 
-  uv_tcp_connect(connect, handle, (const struct sockaddr*)&dest, on_connect);
+  // uv_loop_t* loop = uv_default_loop();
+  // uv_tcp_t* handle = (uv_tcp_t*)malloc(sizeof(uv_tcp_t));
+  // uv_tcp_init(loop, handle);
+  // uv_connect_t* connect = (uv_connect_t*)malloc(sizeof(uv_connect_t));
+  // struct sockaddr_in dest;
+  // uv_ip4_addr("https://127.0.0.1", 8000, &dest);
 
-  uv_run(loop, UV_RUN_DEFAULT);
+  // uv_tcp_connect(connect, handle, (const struct sockaddr*)&dest, on_connect);
+
+  // uv_run(loop, UV_RUN_DEFAULT);
 
   // std::vector<string> certificates = {args.cert, args.key, args.rootCa};
 
@@ -557,7 +649,7 @@ int main(int argc, char** argv)
   //     }
   //     curl_multi_remove_handle(multi_handle[pack_item], ts[i]);
   //     curl_easy_cleanup(ts[i]);
-  //   }
+  //   },
   //   curl_global_cleanup();
   // }
   // cout << "Start storing results" << endl;

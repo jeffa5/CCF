@@ -1,10 +1,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the Apache 2.0 License.
 
-#include "crypto/openssl/hash.h"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/hash.h"
 
-#include "ccf/crypto/hkdf.h"
-#include "ccf/crypto/sha256.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/hkdf.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/sha256.h"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/hash.cpp"
 
 #include <openssl/sha.h>
 

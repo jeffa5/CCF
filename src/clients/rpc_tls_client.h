@@ -2,17 +2,17 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "ccf/crypto/key_pair.h"
-#include "ccf/http_consts.h"
-#include "ccf/serdes.h"
-#include "http/http_builder.h"
-#include "http/http_parser.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/key_pair.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/http_consts.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/serdes.h"
+#include "/home/fotisk/fotisCCf/CCF/src/http/http_builder.h"
+#include "/home/fotisk/fotisCCf/CCF/src/http/http_parser.h"
 #include "tls_client.h"
 
 #define FMT_HEADER_ONLY
-#include <fmt/format.h>
-#include <http/http_sig.h>
-#include <nlohmann/json.hpp>
+#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/format.h>
+#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/nlohmann/json.hpp>
+#include </home/fotisk/fotisCCf/CCF/src/http/http_sig.h>
 #include <optional>
 #include <thread>
 
@@ -52,6 +52,8 @@ namespace client
       const char* auth_token = nullptr)
     {
       auto path = method;
+      std::cout << "out of keypair";
+
       if (prefix.has_value())
       {
         path = fmt::format("/{}/{}", prefix.value(), path);
@@ -66,9 +68,11 @@ namespace client
         r.set_header(
           http::headers::AUTHORIZATION, fmt::format("Bearer {}", auth_token));
       }
+      std::cout << "out of keypair";
 
       if (key_pair != nullptr)
       {
+        std::cout << "keypair";
         http::sign_request(r, key_pair, key_id);
       }
 
@@ -131,6 +135,7 @@ namespace client
       llhttp_method verb = HTTP_POST,
       const char* auth_token = nullptr)
     {
+      std::cout << "hard";
       return {
         gen_request_internal(method, params, content_type, verb, auth_token),
         next_send_id++};
@@ -147,6 +152,7 @@ namespace client
       {
         body = serdes::pack(params, serdes::Pack::MsgPack);
       }
+      std::cout << "gen" << std::endl;
       return gen_request(
         method,
         {body.data(), body.size()},
@@ -160,6 +166,7 @@ namespace client
       const nlohmann::json& params = nullptr,
       llhttp_method verb = HTTP_POST)
     {
+      std::cout << "sss" << std::endl;
       return call_raw(gen_request(method, params, verb, nullptr));
     }
 
@@ -223,7 +230,7 @@ namespace client
     Response read_response()
     {
       last_response = std::nullopt;
-
+      std::cout << "read" << std::endl;
       while (!last_response.has_value())
       {
         const auto next = read_all();

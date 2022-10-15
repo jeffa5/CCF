@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the Apache 2.0 License.
 
-#include "crypto/openssl/symmetric_key.h"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/symmetric_key.h"
 
-#include "ccf/crypto/symmetric_key.h"
-#include "ccf/ds/logger.h"
-#include "crypto/openssl/openssl_wrappers.h"
-#include "ds/thread_messaging.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/symmetric_key.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/logger.h"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/openssl_wrappers.h"
+#include "/home/fotisk/fotisCCf/CCF/src/ds/thread_messaging.h"
 
 #include <openssl/aes.h>
 #include <openssl/evp.h>

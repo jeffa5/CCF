@@ -2,15 +2,15 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "ccf/crypto/base64.h"
-#include "ccf/crypto/key_pair.h"
-#include "ccf/crypto/sha256_hash.h"
-#include "ccf/http_consts.h"
-#include "ccf/service/signed_req.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/base64.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/key_pair.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/sha256_hash.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/http_consts.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/service/signed_req.h"
 #include "http_parser.h"
 
 #define FMT_HEADER_ONLY
-#include <fmt/format.h>
+#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/format.h>
 #include <optional>
 #include <string>
 
