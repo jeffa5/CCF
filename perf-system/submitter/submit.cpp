@@ -1,26 +1,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the Apache 2.0 License.
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/base64.h"
 #include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/verifier.h"
 #include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/logger.h"
 #include "/home/fotisk/fotisCCf/CCF/include/ccf/service/node_info_network.h"
 #include "/home/fotisk/fotisCCf/CCF/src/clients/rpc_tls_client.h"
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/base64.cpp"
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/key_pair.cpp"
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/base64.h"
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/key_pair.cpp"
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/public_key.cpp"
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/public_key.h"
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/rsa_public_key.cpp"
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/verifier.cpp"
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/sha256_hash.cpp"
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/verifier.cpp"
 #include "/home/fotisk/fotisCCf/CCF/src/ds/files.h"
 #include "handle_arguments.hpp"
 #include "parquet_data.hpp"
+#include "stdc++.h"
 
-#include </home/fotisk/fotisCCf/CCF/perf-system/submitter/stdc++.h>
 #include <arrow/api.h>
 #include <arrow/array/array_binary.h>
 #include <arrow/filesystem/localfs.h>
