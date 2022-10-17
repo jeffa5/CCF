@@ -414,6 +414,19 @@ std::shared_ptr<RpcTlsClient> create_connection(
   return conn;
 }
 
+std::string get_response_string(client::HttpRpcTlsClient::Response resp)
+{
+  string response_string = "HTTP/1.1 " + std::to_string(resp.status) + " " +
+    http_status_str(resp.status) + "\n";
+  for (auto const& x : resp.headers)
+  {
+    response_string += (x.first + ':' + x.second + "\n");
+  }
+
+  response_string += std::string(resp.body.begin(), resp.body.end());
+  return response_string;
+}
+
 int main(int argc, char** argv)
 {
   ArgumentParser args;
@@ -425,16 +438,21 @@ int main(int argc, char** argv)
   auto requests_size = data_handler.IDS.size();
   if (!args.isMulitplex)
   {
-    // std::shared_ptr<RpcTlsClient>[requests_size] connections;
     for (size_t req = 0; req < requests_size; req++)
     {
+      timeval start, end;
+      gettimeofday(&start, NULL);
       auto connection = create_connection(certificates, server_address);
       std::vector<uint8_t> raw_req(
         data_handler.REQUEST[req].begin(), data_handler.REQUEST[req].end());
       connection->write(raw_req);
       auto resp = connection->read_response();
-      string str_resp(resp.body.begin(), resp.body.end());
-      // cout << str_resp << endl;
+      gettimeofday(&end, NULL);
+      double send_time = start.tv_sec + start.tv_usec / 1000000.0;
+      double response_time = end.tv_sec + end.tv_usec / 1000000.0;
+      data_handler.SEND_TIME.push_back(send_time);
+      data_handler.RESPONSE_TIME.push_back(response_time);
+      data_handler.RAW_RESPONSE.push_back(get_response_string(resp));
     }
   }
   else
@@ -470,8 +488,10 @@ int main(int argc, char** argv)
   }
   conn2->write(dat);
   resp = conn2->read_response();
-  string get_resp(resp.body.begin(), resp.body.end());
-  cout << "get\n" << get_resp << endl;
+
+  cout << "get\n" << endl;
+  auto b = get_response_string(resp);
+  cout << b << endl;
 
   //
   // curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -606,8 +626,8 @@ int main(int argc, char** argv)
   //   },
   //   curl_global_cleanup();
   // }
-  // cout << "Start storing results" << endl;
-  // writeSendParquetFile(args.sendFilename, data_handler);
-  // writeResponseParquetFile(args.responseFilename, data_handler);
-  // cout << "Finished storing results" << endl;
+  cout << "Start storing results" << endl;
+  writeSendParquetFile(args.sendFilename, data_handler);
+  writeResponseParquetFile(args.responseFilename, data_handler);
+  cout << "Finished storing results" << endl;
 }
