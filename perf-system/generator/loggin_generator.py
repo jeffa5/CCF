@@ -19,7 +19,7 @@ MYHOST = "127.0.0.1:8000"
 #     DATA = '{"id": ' + str(i) + ', "msg": "Logged to private table"}'
 
 #     create_post(MYHOST, MYPATH, MYTYPE, DATA)
-for i in range(10):
+for i in range(12):
     MYTYPE = "HTTP/1.1"
     MYPATH = "/app/log/private?id=45"
     # DATA = '{"id": ' + str(i) + ', "msg": "Logged to private table"}'
