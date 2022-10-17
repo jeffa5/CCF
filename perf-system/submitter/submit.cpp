@@ -414,6 +414,19 @@ std::shared_ptr<RpcTlsClient> create_connection(
   return conn;
 }
 
+std::string get_response_string(client::HttpRpcTlsClient::Response resp)
+{
+  string response_string = "HTTP/1.1 " + std::to_string(resp.status) + " " +
+    http_status_str(resp.status) + "\n";
+  for (auto const& x : resp.headers)
+  {
+    response_string += (x.first + ':' + x.second + "\n");
+  }
+
+  response_string += std::string(resp.body.begin(), resp.body.end());
+  return response_string;
+}
+
 int main(int argc, char** argv)
 {
   ArgumentParser args;
@@ -422,56 +435,30 @@ int main(int argc, char** argv)
   std::vector<string> certificates = {args.cert, args.key, args.rootCa};
   readParquetFile(args.generatorFilename, data_handler);
   std::string server_address = "127.0.0.1:8000";
+  std::cout << "Start Request Submission" << endl;
   auto requests_size = data_handler.IDS.size();
   if (!args.isMulitplex)
   {
-    // std::shared_ptr<RpcTlsClient>[requests_size] connections;
     for (size_t req = 0; req < requests_size; req++)
     {
+      timeval start, end;
+      gettimeofday(&start, NULL);
       auto connection = create_connection(certificates, server_address);
       std::vector<uint8_t> raw_req(
         data_handler.REQUEST[req].begin(), data_handler.REQUEST[req].end());
       connection->write(raw_req);
       auto resp = connection->read_response();
-      string str_resp(resp.body.begin(), resp.body.end());
-      // cout << str_resp << endl;
+      gettimeofday(&end, NULL);
+      double send_time = start.tv_sec + start.tv_usec / 1000000.0;
+      double response_time = end.tv_sec + end.tv_usec / 1000000.0;
+      data_handler.SEND_TIME.push_back(send_time);
+      data_handler.RESPONSE_TIME.push_back(response_time);
+      data_handler.RAW_RESPONSE.push_back(get_response_string(resp));
     }
   }
   else
   {}
-  auto conn = create_connection(certificates, server_address);
-  auto r = http::Request("/app/log/private", HTTP_POST);
-  string s_data = "{\"id\": 45, \"msg\": \"Logged to private table45\"}";
-  nlohmann::json params = nlohmann::json::parse(s_data);
-  std::vector<uint8_t> body = serdes::pack(params, serdes::Pack::Text);
-  r.set_body(body.data(), body.size());
-  r.set_header(
-    http::headers::CONTENT_TYPE, http::headervalues::contenttype::JSON);
-  r.set_header("Host", "127.0.0.1:8000");
-  auto dat = r.build_request();
-  for (size_t i = 0; i < dat.size(); i++)
-  {
-    std::cout << dat[i];
-  }
-  conn->write(dat);
-  auto resp = conn->read_response();
-  string str_resp(resp.body.begin(), resp.body.end());
-  std::cout << "post\n" << str_resp << std::endl;
-
-  auto conn2 = create_connection(certificates, server_address);
-  auto r2 = http::Request("/app/log/private?id=45", HTTP_GET);
-  r2.set_header(
-    http::headers::CONTENT_TYPE, http::headervalues::contenttype::JSON);
-  r2.set_header("Host", "127.0.0.1:8000");
-  dat = r2.build_request();
-  for (size_t i = 0; i < dat.size(); i++)
-  {
-    std::cout << dat[i];
-  }
-  conn2->write(dat);
-  resp = conn2->read_response();
-  string get_resp(resp.body.begin(), resp.body.end());
-  cout << "get\n" << get_resp << endl;
+  std::cout << "Finished Request Submission" << endl;
 
   //
   // curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -606,8 +593,8 @@ int main(int argc, char** argv)
   //   },
   //   curl_global_cleanup();
   // }
-  // cout << "Start storing results" << endl;
-  // writeSendParquetFile(args.sendFilename, data_handler);
-  // writeResponseParquetFile(args.responseFilename, data_handler);
-  // cout << "Finished storing results" << endl;
+  cout << "Start storing results" << endl;
+  writeSendParquetFile(args.sendFilename, data_handler);
+  writeResponseParquetFile(args.responseFilename, data_handler);
+  cout << "Finished storing results" << endl;
 }
