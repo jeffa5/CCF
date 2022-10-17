@@ -2,8 +2,8 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "ccf/crypto/pem.h"
-#include "crypto/openssl/openssl_wrappers.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/pem.h"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/openssl_wrappers.h"
 
 #include <exception>
 

@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include "ccf/ds/json.h"
-#include "ccf/ds/nonstd.h"
-#include "ccf/http_configuration.h"
-#include "ccf/service/acme_client_config.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/json.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/nonstd.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/http_configuration.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/service/acme_client_config.h"
 
 #include <string>
 

@@ -2,12 +2,12 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "ccf/crypto/pem.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/pem.h"
 
 #define FMT_HEADER_ONLY
+#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/format.h>
+#include </home/fotisk/fotisCCf/CCF/src/ds/x509_time_fmt.h>
 #include <chrono>
-#include <ds/x509_time_fmt.h>
-#include <fmt/format.h>
 #include <memory>
 #include <openssl/asn1.h>
 #include <openssl/ec.h>

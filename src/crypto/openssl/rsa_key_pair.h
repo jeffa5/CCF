@@ -2,9 +2,9 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "ccf/crypto/rsa_key_pair.h"
-#include "ccf/crypto/rsa_public_key.h"
-#include "crypto/openssl/rsa_public_key.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/rsa_key_pair.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/rsa_public_key.h"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/rsa_public_key.h"
 
 #include <optional>
 #include <vector>

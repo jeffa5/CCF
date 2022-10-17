@@ -9,8 +9,8 @@ import pandas as pd  # type: ignore
 # pylint: disable=import-error
 import fastparquet as fp  # type: ignore
 
-REQUEST_CONTENT_TYPE = "Content-Type: application/json"
-REQUEST_LENGTH_TEXT = "Content-Length: "
+REQUEST_CONTENT_TYPE = "content-type: application/json"
+REQUEST_LENGTH_TEXT = "content-length: "
 
 df = pd.DataFrame(columns=["messageID", "request"])
 
@@ -43,15 +43,16 @@ def create_get(host, req_path, req_type):
     ind = len(df.index)
     df.loc[ind] = [
         str(ind),
-        "GET"
-        + "$"
-        + host
-        + "$"
+        "GET "
         + req_path
-        + "$"
+        + " "
         + req_type
-        + "$"
-        + REQUEST_CONTENT_TYPE,
+        + "\r\n"
+        + REQUEST_CONTENT_TYPE
+        + "\r\n"
+        + "host: "
+        + host
+        + "\r\n\r\n",
     ]
 
 
@@ -62,19 +63,19 @@ def create_post(host, req_path, req_type, request_message):
     ind = len(df.index)
     df.loc[ind] = [
         str(ind),
-        "POST"
-        + "$"
-        + host
-        + "$"
+        "POST "
         + req_path
-        + "$"
+        + " "
         + req_type
-        + "$"
-        + REQUEST_CONTENT_TYPE
-        + "$"
+        + "\r\n"
         + REQUEST_LENGTH_TEXT
         + str(len(request_message))
-        + "$"
+        + "\r\n"
+        + REQUEST_CONTENT_TYPE
+        + "\r\n"
+        + "host: "
+        + host
+        + "\r\n\r\n"
         + request_message,
     ]
 

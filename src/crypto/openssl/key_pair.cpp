@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the Apache 2.0 License.
 
-#include "crypto/openssl/key_pair.h"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/key_pair.h"
 
-#include "ccf/crypto/curve.h"
-#include "crypto/openssl/hash.h"
-#include "crypto/openssl/public_key.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/curve.h"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/hash.h"
+#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/public_key.h"
 #include "openssl_wrappers.h"
 #include "x509_time.h"
 
 #define FMT_HEADER_ONLY
-#include <fmt/format.h>
+#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/format.h>
 #include <openssl/asn1.h>
 #include <openssl/ec.h>
 #include <openssl/engine.h>

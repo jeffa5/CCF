@@ -2,13 +2,13 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "ccf/ds/hash.h"
-#include "ccf/ds/nonstd.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/hash.h"
+#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/nonstd.h"
 #include "serializer.h"
 
 #include <atomic>
 #define FMT_HEADER_ONLY
-#include <fmt/format.h>
+#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/format.h>
 #include <optional>
 #include <string>
 #include <vector>
