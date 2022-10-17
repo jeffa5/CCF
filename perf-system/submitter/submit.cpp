@@ -435,6 +435,7 @@ int main(int argc, char** argv)
   std::vector<string> certificates = {args.cert, args.key, args.rootCa};
   readParquetFile(args.generatorFilename, data_handler);
   std::string server_address = "127.0.0.1:8000";
+  std::cout << "Start Request Submission" << endl;
   auto requests_size = data_handler.IDS.size();
   if (!args.isMulitplex)
   {
@@ -457,41 +458,7 @@ int main(int argc, char** argv)
   }
   else
   {}
-  auto conn = create_connection(certificates, server_address);
-  auto r = http::Request("/app/log/private", HTTP_POST);
-  string s_data = "{\"id\": 45, \"msg\": \"Logged to private table45\"}";
-  nlohmann::json params = nlohmann::json::parse(s_data);
-  std::vector<uint8_t> body = serdes::pack(params, serdes::Pack::Text);
-  r.set_body(body.data(), body.size());
-  r.set_header(
-    http::headers::CONTENT_TYPE, http::headervalues::contenttype::JSON);
-  r.set_header("Host", "127.0.0.1:8000");
-  auto dat = r.build_request();
-  for (size_t i = 0; i < dat.size(); i++)
-  {
-    std::cout << dat[i];
-  }
-  conn->write(dat);
-  auto resp = conn->read_response();
-  string str_resp(resp.body.begin(), resp.body.end());
-  std::cout << "post\n" << str_resp << std::endl;
-
-  auto conn2 = create_connection(certificates, server_address);
-  auto r2 = http::Request("/app/log/private?id=45", HTTP_GET);
-  r2.set_header(
-    http::headers::CONTENT_TYPE, http::headervalues::contenttype::JSON);
-  r2.set_header("Host", "127.0.0.1:8000");
-  dat = r2.build_request();
-  for (size_t i = 0; i < dat.size(); i++)
-  {
-    std::cout << dat[i];
-  }
-  conn2->write(dat);
-  resp = conn2->read_response();
-
-  cout << "get\n" << endl;
-  auto b = get_response_string(resp);
-  cout << b << endl;
+  std::cout << "Finished Request Submission" << endl;
 
   //
   // curl_global_init(CURL_GLOBAL_DEFAULT);
