@@ -156,13 +156,10 @@ namespace client
       for (size_t written = 0; written < b.size();)
       {
         auto ret = 0;
-        std::cout << b.data() << std::endl;
-        // std::cout << bio << std::endl;
         do
         {
           ret = BIO_write(bio, b.data() + written, b.size() - written);
         } while (ret < 0 && BIO_should_retry(bio));
-        // std::cout << ret << std::endl;
 
         if (ret >= 0)
         {

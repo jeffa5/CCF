@@ -11,6 +11,7 @@ class ParquetData
 {
 public:
   std::vector<std::string> IDS;
+  std::vector<std::string> REQUEST;
   std::vector<std::string> REQ_VERB;
   std::vector<std::string> REQ_HOST;
   std::vector<std::string> REQ_PATH;

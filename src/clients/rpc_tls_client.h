@@ -52,7 +52,6 @@ namespace client
       const char* auth_token = nullptr)
     {
       auto path = method;
-      std::cout << "out of keypair";
 
       if (prefix.has_value())
       {
@@ -68,11 +67,9 @@ namespace client
         r.set_header(
           http::headers::AUTHORIZATION, fmt::format("Bearer {}", auth_token));
       }
-      std::cout << "out of keypair";
 
       if (key_pair != nullptr)
       {
-        std::cout << "keypair";
         http::sign_request(r, key_pair, key_id);
       }
 
@@ -135,7 +132,6 @@ namespace client
       llhttp_method verb = HTTP_POST,
       const char* auth_token = nullptr)
     {
-      std::cout << "hard";
       return {
         gen_request_internal(method, params, content_type, verb, auth_token),
         next_send_id++};
@@ -152,7 +148,6 @@ namespace client
       {
         body = serdes::pack(params, serdes::Pack::MsgPack);
       }
-      std::cout << "gen" << std::endl;
       return gen_request(
         method,
         {body.data(), body.size()},
@@ -166,7 +161,6 @@ namespace client
       const nlohmann::json& params = nullptr,
       llhttp_method verb = HTTP_POST)
     {
-      std::cout << "sss" << std::endl;
       return call_raw(gen_request(method, params, verb, nullptr));
     }
 
@@ -230,7 +224,6 @@ namespace client
     Response read_response()
     {
       last_response = std::nullopt;
-      std::cout << "read" << std::endl;
       while (!last_response.has_value())
       {
         const auto next = read_all();

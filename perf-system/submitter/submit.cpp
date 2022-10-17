@@ -113,22 +113,24 @@ void readParquetFile(string generatorFilename, ParquetData& data_handler)
   for (int row = 0; row < col1Vals->length(); row++)
   {
     data_handler.IDS.push_back(col1Vals->GetString(row));
-    std::vector<string> splitted_req = splitString(
-      col2Vals->GetString(row), '$'); // ASSUME om data there are now $, think
-                                      // of adding data to new parquet col
+    data_handler.REQUEST.push_back(col2Vals->GetString(row));
+    // std::vector<string> splitted_req = splitString(
+    //   col2Vals->GetString(row), '$'); // ASSUME om data there are no $,
+    // think
+    //   // of adding data to new parquet col
 
-    data_handler.REQ_VERB.push_back(splitted_req.at(0));
-    data_handler.REQ_HOST.push_back(splitted_req.at(1));
-    data_handler.REQ_PATH.push_back(splitted_req.at(2));
-    data_handler.REQ_TYPE.push_back(splitted_req.at(3));
-    data_handler.REQ_HEADER.push_back(splitted_req.at(4));
-    if (splitted_req.size() > 6)
-    {
-      data_handler.REQ_LENGTH.push_back(splitted_req.at(5));
-      data_handler.REQ_DATA.push_back(splitted_req.at(6));
-    }
-    else
-      data_handler.REQ_DATA.push_back("");
+    //   data_handler.REQ_VERB.push_back(splitted_req.at(0));
+    // data_handler.REQ_HOST.push_back(splitted_req.at(1));
+    // data_handler.REQ_PATH.push_back(splitted_req.at(2));
+    // data_handler.REQ_TYPE.push_back(splitted_req.at(3));
+    // data_handler.REQ_HEADER.push_back(splitted_req.at(4));
+    // if (splitted_req.size() > 6)
+    // {
+    //   data_handler.REQ_LENGTH.push_back(splitted_req.at(5));
+    //   data_handler.REQ_DATA.push_back(splitted_req.at(6));
+    // }
+    // else
+    //   data_handler.REQ_DATA.push_back("");
   }
 }
 
@@ -211,81 +213,72 @@ void writeSendParquetFile(std::string filename, ParquetData& data_handler)
   }
 }
 
-size_t write_callback(char* ptr, size_t size, size_t nmemb, void* userdata)
-{
-  std::vector<char>* response = reinterpret_cast<std::vector<char>*>(userdata);
+// void genericRequestSettings(
+//   CURL* curl,
+//   int iter,
+//   std::vector<string> certificates,
+//   std::vector<char>& response,
+//   ParquetData& data_handler)
+// {
+//   curl_easy_setopt(
+//     curl,
+//     CURLOPT_URL,
+//     (data_handler.REQ_HOST[iter] + data_handler.REQ_PATH[iter]).c_str());
+//   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+//   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+//   if (certificates.size() > 0)
+//   {
+//     curl_easy_setopt(curl, CURLOPT_SSLCERT, certificates[0].c_str());
+//     curl_easy_setopt(curl, CURLOPT_SSLKEY, certificates[1].c_str());
+//     curl_easy_setopt(curl, CURLOPT_CAINFO, certificates[2].c_str());
+//   }
+//   curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // add in the response the
+//   headers struct curl_slist* hs = NULL; hs = curl_slist_append(hs,
+//   data_handler.REQ_HEADER[iter].c_str()); curl_easy_setopt(curl,
+//   CURLOPT_HTTPHEADER, hs);
 
-  response->insert(response->end(), ptr, ptr + nmemb);
+//   if (!data_handler.REQ_DATA[iter].empty())
+//   { // or compare with not GET
+//     curl_easy_setopt(
+//       curl, CURLOPT_POSTFIELDS, data_handler.REQ_DATA[iter].c_str());
+//   }
 
-  return nmemb;
-}
+//   if (data_handler.REQ_TYPE[iter] == "HTTP/2")
+//   {
+//     curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+//   }
+// }
 
-void genericRequestSettings(
-  CURL* curl,
-  int iter,
-  std::vector<string> certificates,
-  std::vector<char>& response,
-  ParquetData& data_handler)
-{
-  curl_easy_setopt(
-    curl,
-    CURLOPT_URL,
-    (data_handler.REQ_HOST[iter] + data_handler.REQ_PATH[iter]).c_str());
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-  if (certificates.size() > 0)
-  {
-    curl_easy_setopt(curl, CURLOPT_SSLCERT, certificates[0].c_str());
-    curl_easy_setopt(curl, CURLOPT_SSLKEY, certificates[1].c_str());
-    curl_easy_setopt(curl, CURLOPT_CAINFO, certificates[2].c_str());
-  }
-  curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // add in the response the headers
-  struct curl_slist* hs = NULL;
-  hs = curl_slist_append(hs, data_handler.REQ_HEADER[iter].c_str());
-  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
+// std::vector<char> submitSingleRequest(
+//   CURL* curl,
+//   int iter,
+//   std::vector<string> certificates,
+//   ParquetData& data_handler)
+// {
+//   std::vector<char> response;
 
-  if (!data_handler.REQ_DATA[iter].empty())
-  { // or compare with not GET
-    curl_easy_setopt(
-      curl, CURLOPT_POSTFIELDS, data_handler.REQ_DATA[iter].c_str());
-  }
+//   curl_easy_setopt(
+//     curl,
+//     CURLOPT_URL,
+//     (data_handler.REQ_HOST[iter] + data_handler.REQ_PATH[iter]).c_str());
+//   genericRequestSettings(curl, iter, certificates, response, data_handler);
 
-  if (data_handler.REQ_TYPE[iter] == "HTTP/2")
-  {
-    curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
-  }
-}
+//   double total;
+//   timeval curTime;
+//   gettimeofday(&curTime, NULL);
+//   auto res = curl_easy_perform(curl);
 
-std::vector<char> submitSingleRequest(
-  CURL* curl,
-  int iter,
-  std::vector<string> certificates,
-  ParquetData& data_handler)
-{
-  std::vector<char> response;
+//   double sendTime = curTime.tv_sec + curTime.tv_usec / 1000000.0;
+//   curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total);
 
-  curl_easy_setopt(
-    curl,
-    CURLOPT_URL,
-    (data_handler.REQ_HOST[iter] + data_handler.REQ_PATH[iter]).c_str());
-  genericRequestSettings(curl, iter, certificates, response, data_handler);
+//   data_handler.SEND_TIME.push_back(sendTime);
+//   data_handler.RESPONSE_TIME.push_back(sendTime + total);
 
-  double total;
-  timeval curTime;
-  gettimeofday(&curTime, NULL);
-  auto res = curl_easy_perform(curl);
+//   std::string resp_string(response.begin(), response.end());
+//   data_handler.RAW_RESPONSE.push_back(resp_string);
 
-  double sendTime = curTime.tv_sec + curTime.tv_usec / 1000000.0;
-  curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total);
-
-  data_handler.SEND_TIME.push_back(sendTime);
-  data_handler.RESPONSE_TIME.push_back(sendTime + total);
-
-  std::string resp_string(response.begin(), response.end());
-  data_handler.RAW_RESPONSE.push_back(resp_string);
-
-  return response;
-}
+//   return response;
+// }
 
 static void on_alloc(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf)
 {
@@ -383,20 +376,17 @@ using namespace client;
 crypto::Pem key = {};
 std::string key_id = "Invalid";
 std::shared_ptr<tls::Cert> tls_cert = nullptr;
-const char* cert_file;
-const char* key_file;
-const char* ca_file;
-string server_address = "127.0.0.1:8000";
-std::shared_ptr<RpcTlsClient> create_connection(bool force_unsigned = false)
+std::shared_ptr<RpcTlsClient> create_connection(
+  std::vector<string> certificates, std::string server_address)
 {
   // Create a cert if this is our first rpc_connection
   const bool is_first_time = tls_cert == nullptr;
 
   if (is_first_time)
   {
-    const auto raw_cert = files::slurp(cert_file);
-    const auto raw_key = files::slurp(key_file);
-    const auto ca = files::slurp_string(ca_file);
+    const auto raw_cert = files::slurp(certificates[0].c_str());
+    const auto raw_key = files::slurp(certificates[1].c_str());
+    const auto ca = files::slurp_string(certificates[2].c_str());
 
     key = crypto::Pem(raw_key);
 
@@ -411,12 +401,6 @@ std::shared_ptr<RpcTlsClient> create_connection(bool force_unsigned = false)
   const auto [host, port] = ccf::split_net_address(server_address);
   auto conn =
     std::make_shared<RpcTlsClient>(host, port, nullptr, tls_cert, key_id);
-  auto sign = true;
-  if (sign && !force_unsigned)
-  {
-    LOG_INFO_FMT("Creating key pair");
-    conn->create_key_pair(key);
-  }
 
   conn->set_prefix("app");
 
@@ -435,91 +419,61 @@ int main(int argc, char** argv)
   ArgumentParser args;
   args.argument_assigner(argc, argv);
   ParquetData data_handler;
-
-  cert_file = args.cert.c_str();
-  key_file = args.key.c_str();
-  ca_file = args.rootCa.c_str();
-  auto conn = create_connection(false);
-  // auto r = conn->call("tpcc_create");
+  std::vector<string> certificates = {args.cert, args.key, args.rootCa};
+  readParquetFile(args.generatorFilename, data_handler);
+  std::string server_address = "127.0.0.1:8000";
+  auto requests_size = data_handler.IDS.size();
+  if (!args.isMulitplex)
+  {
+    // std::shared_ptr<RpcTlsClient>[requests_size] connections;
+    for (size_t req = 0; req < requests_size; req++)
+    {
+      auto connection = create_connection(certificates, server_address);
+      std::vector<uint8_t> raw_req(
+        data_handler.REQUEST[req].begin(), data_handler.REQUEST[req].end());
+      connection->write(raw_req);
+      auto resp = connection->read_response();
+      string str_resp(resp.body.begin(), resp.body.end());
+      // cout << str_resp << endl;
+    }
+  }
+  else
+  {}
+  auto conn = create_connection(certificates, server_address);
   auto r = http::Request("/app/log/private", HTTP_POST);
-  nlohmann::json params =
-    R"({"id": 43, "msg": "Logged to private table43"})"_json;
+  string s_data = "{\"id\": 45, \"msg\": \"Logged to private table45\"}";
+  nlohmann::json params = nlohmann::json::parse(s_data);
   std::vector<uint8_t> body = serdes::pack(params, serdes::Pack::Text);
   r.set_body(body.data(), body.size());
   r.set_header(
     http::headers::CONTENT_TYPE, http::headervalues::contenttype::JSON);
   r.set_header("Host", "127.0.0.1:8000");
-
   auto dat = r.build_request();
+  for (size_t i = 0; i < dat.size(); i++)
+  {
+    std::cout << dat[i];
+  }
   conn->write(dat);
   auto resp = conn->read_response();
   string str_resp(resp.body.begin(), resp.body.end());
-  cout << "post\n" << str_resp << endl;
-  r = http::Request("/app/log/private?id=43", HTTP_GET);
-  r.set_header(
+  std::cout << "post\n" << str_resp << std::endl;
+
+  auto conn2 = create_connection(certificates, server_address);
+  auto r2 = http::Request("/app/log/private?id=45", HTTP_GET);
+  r2.set_header(
     http::headers::CONTENT_TYPE, http::headervalues::contenttype::JSON);
-  r.set_header("Host", "127.0.0.1:8000");
-  dat = r.build_request();
-  conn->write(dat);
-  resp = conn->read_response();
+  r2.set_header("Host", "127.0.0.1:8000");
+  dat = r2.build_request();
+  for (size_t i = 0; i < dat.size(); i++)
+  {
+    std::cout << dat[i];
+  }
+  conn2->write(dat);
+  resp = conn2->read_response();
   string get_resp(resp.body.begin(), resp.body.end());
   cout << "get\n" << get_resp << endl;
-  // SSL_library_init();
-  // SSL_load_error_strings();
-  // BIO* bio_err = BIO_new_fp(stderr, BIO_NOCLOSE);
-  // SSL_CTX* ssl_ctx = SSL_CTX_new(SSLv23_method());
-  // int rc;
-  // X509* cert;
-  // BIO* bio;
 
-  // bio = BIO_new(BIO_s_file());
-  // if (BIO_read_filename(bio, ROOT_CA_FILE) <= 0)
-  //   cert = NULL;
-  // if (!PEM_read_bio_X509(bio, &cert, 0, NULL))
-  //   printf("Cannot load extra-certs file");
-
-  // rc = SSL_CTX_use_certificate_chain_file(ssl_ctx, CLIENT_CERT_FILE);
-  // if (rc != 1)
-  // {
-  //   printf("Could not load client certificate file.\n");
-  //   ::exit(1);
-  // }
-  // rc = SSL_CTX_use_PrivateKey_file(ssl_ctx, CLIENT_KEY_FILE,
-  // SSL_FILETYPE_PEM); if (!rc)
-  // {
-  //   printf("Could not load client key file.\n");
-  //   ::exit(1);
-  // }
-
-  // rc = SSL_CTX_add_extra_chain_cert(ssl_ctx, cert);
-  // if (!rc)
-  // {
-  //   printf("Could not load root ca file.\n");
-  //   ::exit(1);
-  // }
-
-  // SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
-  // SSL_CTX_set_verify(
-  //   ssl_ctx,
-  //   SSL_VERIFY_NONE,
-  //   NULL); // no verify, testing libuv + openssl mem bios
-  // SSL_CTX_set_info_callback(ssl_ctx, dummy_ssl_info_callback);
-  // SSL_CTX_set_msg_callback(ssl_ctx, dummy_ssl_msg_callback);
-
-  // uv_loop_t* loop = uv_default_loop();
-  // uv_tcp_t* handle = (uv_tcp_t*)malloc(sizeof(uv_tcp_t));
-  // uv_tcp_init(loop, handle);
-  // uv_connect_t* connect = (uv_connect_t*)malloc(sizeof(uv_connect_t));
-  // struct sockaddr_in dest;
-  // uv_ip4_addr("https://127.0.0.1", 8000, &dest);
-
-  // uv_tcp_connect(connect, handle, (const struct sockaddr*)&dest, on_connect);
-
-  // uv_run(loop, UV_RUN_DEFAULT);
-
-  // std::vector<string> certificates = {args.cert, args.key, args.rootCa};
-
-  // readParquetFile(args.generatorFilename, data_handler);
+  //
   // curl_global_init(CURL_GLOBAL_DEFAULT);
   // if (!args.isMulitplex)
   // {

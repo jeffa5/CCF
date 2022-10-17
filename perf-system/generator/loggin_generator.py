@@ -3,7 +3,7 @@
 from generator import *
 from generator import create_parquet
 
-MYHOST = "https://127.0.0.1:8000"
+MYHOST = "127.0.0.1:8000"
 
 
 # for i in range(100200):
@@ -19,12 +19,18 @@ MYHOST = "https://127.0.0.1:8000"
 #     DATA = '{"id": ' + str(i) + ', "msg": "Logged to private table"}'
 
 #     create_post(MYHOST, MYPATH, MYTYPE, DATA)
-for i in range(100200):
-    MYTYPE = "HTTP/1"
-    MYPATH = "/app/log/private?id=42"
+for i in range(10):
+    MYTYPE = "HTTP/1.1"
+    MYPATH = "/app/log/private?id=45"
     # DATA = '{"id": ' + str(i) + ', "msg": "Logged to private table"}'
 
     create_get(MYHOST, MYPATH, MYTYPE)
+for i in range(10):
+    MYTYPE = "HTTP/1.1"
+    MYPATH = "/app/log/private"
+    DATA = '{"id": ' + str(i) + ', "msg": "Logged to private table"}'
+
+    create_post(MYHOST, MYPATH, MYTYPE, DATA)
 # for i in range(10):
 #     MYTYPE = "HTTP/2"
 #     MYPATH = "/v3/kv/range"
@@ -55,4 +61,4 @@ for i in range(100200):
 #     create_delete(MYHOST, MYPATH + "?id=" + str(i), MYTYPE)
 
 
-create_parquet("http1_get_requests.parquet")
+create_parquet("new_raw.parquet")
