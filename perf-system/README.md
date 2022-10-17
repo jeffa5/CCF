@@ -77,7 +77,7 @@ You can provide certification files or configure import/export files by replacin
 - `-gf`: Followed by the path to the file that contains the requests to be submitted. Default file `../generator/requests.parquet`
 - `-sf`: Followed by the path to the parquet file to store the requests that have been submitted. Default file `./cpp_sends.parquet`.
 - `-rf`: Followed by the path to the parquet file to store the responses from the requests that have been submitted. Default file `./cpp_responses.parquet`.
-- `-multiplex`: The existence of this option will force the submitter to send http2 requests using multiplex.
+- `-pipeline`: The existence of this option will force the submitter to send http2 requests using multiplex.
 
 ### Python
 
