@@ -47,11 +47,11 @@ void readParquetFile(string generatorFilename, ParquetData& data_handler)
   st = parquet::arrow::OpenFile(input, pool, &arrow_reader);
   if (!st.ok())
   {
-    std::cout << "Couldn't open Input file" << std::endl;
+    std::cout << "Couldn't found generator file" << std::endl;
   }
   else
   {
-    std::cout << "Read generator file" << std::endl;
+    std::cout << "Found generator file" << std::endl;
   }
 
   // Read entire file as a single Arrow table
@@ -60,7 +60,7 @@ void readParquetFile(string generatorFilename, ParquetData& data_handler)
   st = arrow_reader->ReadTable(selected_columns, &table);
   if (!st.ok())
   {
-    std::cout << "Couldn't read Input file" << std::endl;
+    std::cout << "Couldn't open generator file" << std::endl;
   }
   else
   {
@@ -221,17 +221,21 @@ int main(int argc, char** argv)
   args.argument_assigner(argc, argv);
   ParquetData data_handler;
   std::vector<string> certificates = {args.cert, args.key, args.rootCa};
+
   readParquetFile(args.generatorFilename, data_handler);
+
   std::string server_address = "127.0.0.1:8000";
-  int max_block_write = 1000; // Threshold for pending writes
+
+  int max_block_write = 1000; // Threshold for maximum pending writes
+
   auto requests_size = data_handler.IDS.size();
 
-  timeval start[requests_size];
-  timeval end[requests_size];
-  std::vector<uint8_t> raw_reqs[requests_size];
+  std::vector<timeval> start(requests_size);
+  std::vector<timeval> end(requests_size);
+  std::vector<std::vector<uint8_t>> raw_reqs(requests_size);
+
   // Store responses until they are processed to be written in parquet
-  HttpRpcTlsClient::Response* resp = (HttpRpcTlsClient::Response*)malloc(
-    sizeof(HttpRpcTlsClient::Response) * requests_size);
+  std::vector<HttpRpcTlsClient::Response> resp(data_handler.IDS.size());
 
   // Add raw requests straight as uint8_t inside a vector
   for (size_t req = 0; req < requests_size; req++)
@@ -266,8 +270,8 @@ int main(int argc, char** argv)
       connection->write(raw_reqs[req]);
       if (connection->bytes_available() or req - read_reqs > max_block_write)
       {
-        gettimeofday(&end[read_reqs], NULL);
         resp[read_reqs] = connection->read_response();
+        gettimeofday(&end[read_reqs], NULL);
         read_reqs++;
       }
     }
@@ -280,7 +284,7 @@ int main(int argc, char** argv)
       read_reqs++;
     }
   }
-
+  cout << "Finished subm" << endl;
   for (size_t req = 0; req < requests_size; req++)
   {
     data_handler.RAW_RESPONSE.push_back(get_response_string(resp[req]));
