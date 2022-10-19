@@ -223,29 +223,72 @@ int main(int argc, char** argv)
   std::vector<string> certificates = {args.cert, args.key, args.rootCa};
   readParquetFile(args.generatorFilename, data_handler);
   std::string server_address = "127.0.0.1:8000";
-  std::cout << "Start Request Submission" << endl;
+  int max_block_write = 1000; // Threshold for pending writes
   auto requests_size = data_handler.IDS.size();
-  if (!args.isMulitplex)
+
+  timeval start[requests_size];
+  timeval end[requests_size];
+  std::vector<uint8_t> raw_reqs[requests_size];
+  // Store responses until they are processed to be written in parquet
+  HttpRpcTlsClient::Response* resp = (HttpRpcTlsClient::Response*)malloc(
+    sizeof(HttpRpcTlsClient::Response) * requests_size);
+
+  // Add raw requests straight as uint8_t inside a vector
+  for (size_t req = 0; req < requests_size; req++)
   {
+    raw_reqs[req] = std::vector<uint8_t>(
+      data_handler.REQUEST[req].begin(), data_handler.REQUEST[req].end());
+  }
+
+  std::cout << "Start Request Submission" << endl;
+
+  if (!args.isPipeline)
+  {
+    // Request by Request
     for (size_t req = 0; req < requests_size; req++)
     {
-      timeval start, end;
-      gettimeofday(&start, NULL);
+      gettimeofday(&start[req], NULL);
       auto connection = create_connection(certificates, server_address);
-      std::vector<uint8_t> raw_req(
-        data_handler.REQUEST[req].begin(), data_handler.REQUEST[req].end());
-      connection->write(raw_req);
-      auto resp = connection->read_response();
-      gettimeofday(&end, NULL);
-      double send_time = start.tv_sec + start.tv_usec / 1000000.0;
-      double response_time = end.tv_sec + end.tv_usec / 1000000.0;
-      data_handler.SEND_TIME.push_back(send_time);
-      data_handler.RESPONSE_TIME.push_back(response_time);
-      data_handler.RAW_RESPONSE.push_back(get_response_string(resp));
+      connection->write(raw_reqs[req]);
+      resp[req] = connection->read_response();
+      gettimeofday(&end[req], NULL);
     }
   }
   else
-  {}
+  {
+    // Pipeline
+    int read_reqs = 0; // use this to block writes
+    auto connection = create_connection(certificates, server_address);
+
+    for (size_t req = 0; req < requests_size; req++)
+    {
+      gettimeofday(&start[req], NULL);
+      connection->write(raw_reqs[req]);
+      if (connection->bytes_available() or req - read_reqs > max_block_write)
+      {
+        gettimeofday(&end[read_reqs], NULL);
+        resp[read_reqs] = connection->read_response();
+        read_reqs++;
+      }
+    }
+
+    // Read remaining responses
+    while (read_reqs < requests_size)
+    {
+      resp[read_reqs] = connection->read_response();
+      gettimeofday(&end[read_reqs], NULL);
+      read_reqs++;
+    }
+  }
+
+  for (size_t req = 0; req < requests_size; req++)
+  {
+    data_handler.RAW_RESPONSE.push_back(get_response_string(resp[req]));
+    double send_time = start[req].tv_sec + start[req].tv_usec / 1000000.0;
+    double response_time = end[req].tv_sec + end[req].tv_usec / 1000000.0;
+    data_handler.SEND_TIME.push_back(send_time);
+    data_handler.RESPONSE_TIME.push_back(response_time);
+  }
   std::cout << "Finished Request Submission" << endl;
 
   cout << "Start storing results" << endl;

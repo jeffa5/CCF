@@ -33,9 +33,9 @@ void ArgumentParser::argument_assigner(int argc, char** argv)
     {
       responseFilename = argv[argIter + 1];
     }
-    if (strcmp(argv[argIter], "-multiplex") == 0)
+    if (strcmp(argv[argIter], "-pipeline") == 0)
     {
-      isMulitplex = true;
+      isPipeline = true;
     }
     if (strcmp(argv[argIter], "-gf") == 0)
     {
