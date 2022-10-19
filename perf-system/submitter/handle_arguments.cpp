@@ -17,33 +17,37 @@ void ArgumentParser::argument_assigner(int argc, char** argv)
     {
       cert = argv[argIter + 1];
     }
-    if (strcmp(argv[argIter], "-k") == 0)
+    else if (strcmp(argv[argIter], "-k") == 0)
     {
       key = argv[argIter + 1];
     }
-    if (strcmp(argv[argIter], "-ca") == 0)
+    else if (strcmp(argv[argIter], "-ca") == 0)
     {
       rootCa = argv[argIter + 1];
     }
-    if (strcmp(argv[argIter], "-sf") == 0)
+    else if (strcmp(argv[argIter], "-sf") == 0)
     {
-      sendFilename = argv[argIter + 1];
+      send_filename = argv[argIter + 1];
     }
-    if (strcmp(argv[argIter], "-rf") == 0)
+    else if (strcmp(argv[argIter], "-rf") == 0)
     {
-      responseFilename = argv[argIter + 1];
+      response_filename = argv[argIter + 1];
     }
-    if (strcmp(argv[argIter], "-pipeline") == 0)
+    else if (strcmp(argv[argIter], "-pipeline") == 0)
     {
       isPipeline = true;
     }
-    if (strcmp(argv[argIter], "-gf") == 0)
+    else if (strcmp(argv[argIter], "-gf") == 0)
     {
-      generatorFilename = argv[argIter + 1];
+      generator_filename = argv[argIter + 1];
     }
-    if (strcmp(argv[argIter], "-d") == 0)
+    else if (strcmp(argv[argIter], "-d") == 0)
     {
       duration = atoi(argv[argIter + 1]);
+    }
+    else if (strcmp(argv[argIter], "-sa") == 0)
+    {
+      server_address = argv[argIter + 1];
     }
   }
 }
