@@ -34,6 +34,7 @@ By default, the generator will create a .parquet file, which is necessary for th
 - `-d, --data`: A string with the data to be sent in a POST or DELETE request
 
 This component consists of 3 different files. The **CCF/perf-system/Generator/loggin_generator.py** is an alternative of the command line options run providing more flexibility to the user in order to create his own more complex requests. There exist some samples, calling `create_post()` and `create_get()` functions to initiate rows of requests. All requests in the end should be followed by the `create_parquet()` function in order to generate the parquet file.
+You can either edit **CCF/perf-system/Generator/loggin_generator.py** or create your own file in the same directory calling functions from the **CCF/perf-system/Generator/generator.py** in order to construct your own series of requests.
 
 ## Submitter
 
@@ -54,16 +55,16 @@ make
 make install
 ```
 
-Take extra care with the options given to cmake command. `-DARROW_FILESYSTEM=ON` and `-DARROW_PARQUET=ON` will install the necessary libraries in addition to arrow, needed for the submitter execution.
+Take extra care with the options given to the cmake command. `-DARROW_FILESYSTEM=ON` and `-DARROW_PARQUET=ON` will install the necessary libraries in addition to arrow, which are necessary for the submitter execution.
 
-The `/path/to/install` provided for your system is necessary for the CMake file of our project. Replace inside the **CCF/perf-system/CmakeLists.txt** in lines 7, 9 and 10 the absolute paths `/home/fotisk/include/` and `/home/fotisk/lib/` to `/path/to/install/include/` and `/path/to/install/lib/` respectively.
+Edit the `/path/to/install` on the cmake command with a path inside your system that you want the libraries to be installed. This path is necessary fo the cmake file of the submitter. Replace inside the **CCF/perf-system/submitter/CmakeLists.txt** in lines 7, 9 and 10 the absolute paths `/home/fotisk/include/` and `/home/fotisk/lib/` to `/path/to/install/include/` and `/path/to/install/lib/` respectively.
 
-After installing arrow and changing CMakeLists.txt accordingly follow the commands below to run your program
+After installing arrow and changing CMakeLists.txt accordingly execute the commands below to run your program from the **CCF/perf-system/submitter/** directory.
 
 ```sh
 mkdir build
 cd build
-cmake ..
+CC=/usr/bin/clang-10 CXX=/usr/bin/clang++-10 cmake -GNinja ..
 make
 cd ..
 ./build/submit -manual_configurations
@@ -74,10 +75,11 @@ You can provide certification files or configure import/export files by replacin
 - `-c`: Followed by the path to the certificate file
 - `-k`: Followed by the path to the private key file
 - `-ca`: Followed by the path to the specified certificate file to verify the peer
-- `-gf`: Followed by the path to the file that contains the requests to be submitted. Default file `../generator/requests.parquet`
-- `-sf`: Followed by the path to the parquet file to store the requests that have been submitted. Default file `./cpp_sends.parquet`.
+- `-gf`: Followed by the path to the file that contains the generated requests. Default file `../generator/requests.parquet`
+- `-sf`: Followed by the path to the parquet file to store submission information  for the requests that have been submitted. Default file `./cpp_sends.parquet`.
 - `-rf`: Followed by the path to the parquet file to store the responses from the requests that have been submitted. Default file `./cpp_responses.parquet`.
-- `-pipeline`: The existence of this option will force the submitter to send http2 requests using multiplex.
+- `-pipeline`: The existence of this option will force the submitter to use HTTP/1.1 pipelining.
+- `-sa`: Followed by the server address (`host:port`) to submit the requests. Default server address `127.0.0.1:8000`
 
 ### Python
 
@@ -87,7 +89,7 @@ To run the submitter writtern in **Python** you need to run from the current dir
 python3 submitter.py
 ```
 
-When running the submitter you have the following options:
+When running the submitter you have the following options to configure the submitter:
 
 - `-ca, --cacert`: Use the specified certificate file to verify the peer
 - `-c, --cert`: Use the specified client certificate file
@@ -96,8 +98,9 @@ When running the submitter you have the following options:
 - `-gf, --generator_file`: Name of the parquet file that contains the requests to be submitted. Default file `../generator/requests.parquet`
 - `-sf, --send_file`: Name of the parquet file to store the requests that have been submitted. Default file `./sends.parquet`.
 - `-rf, --response_file`: Name of the parquet file to store the responses from the requests that have been submitted. Default file `./responses.parquet`.
+- `-sa, --server_address` The address of the server to submit the requests default is set to `127.0.0.1:8000`
 
-When the submitter is done, there will be two .parquet files generated in this directory
+When the submitter is executed successfully, there will be two .parquet files generated in this directory.
 
 ## Analyzer
 
@@ -112,4 +115,4 @@ When running the analyzer you have the following options to specify the exported
 - `-sf, --send_file`: Name of the parquet file for the requests that have been submitted. Default file `../submitter/cpp_send.parquet`.
 - `-rf, --response_file`: Name of the parquet file for the responses from the requests that have been submitted. Default file `../submitter/cpp_respond.parquet`.
 
-After the execution, in the command prompt will be written two tables with some metrics and in the current directory there will be exported an image plotting the latency of the requests.
+After the execution, in the command prompt will be written two tables with some metrics and in the current directory there will be exported three images plotting the latency accros time or based on the id and the throughput of the requests.
