@@ -11,9 +11,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--rpath=/home/fotisk/lib")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
 
 add_executable(
-  submit submit.cpp handle_arguments.cpp 
-  handle_arguments.hpp parquet_data.cpp
-  stdcpp.h parquet_data.hpp 
+  submit submit.cpp handle_arguments.cpp handle_arguments.hpp parquet_data.cpp
+         stdcpp.h parquet_data.hpp
 )
 
 set(CCF_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../..)
@@ -32,6 +31,18 @@ target_link_libraries(submit PRIVATE uv)
 target_link_libraries(submit PRIVATE ssl)
 target_link_libraries(submit PRIVATE crypto)
 target_link_libraries(submit PRIVATE ccfcrypto.host)
-target_link_libraries(submit PRIVATE /home/fotisk/fotisCCf/CCF/build/CMakeFiles/http_parser.host.dir/3rdparty/exported/llhttp/llhttp.c.o)
-target_link_libraries(submit PRIVATE /home/fotisk/fotisCCf/CCF/build/CMakeFiles/http_parser.host.dir/3rdparty/exported/llhttp/api.c.o)
-target_link_libraries(submit PRIVATE /home/fotisk/fotisCCf/CCF/build/CMakeFiles/http_parser.host.dir/3rdparty/exported/llhttp/http.c.o)
+target_link_libraries(
+  submit
+  PRIVATE
+    ${CCF_DIR}/build/CMakeFiles/http_parser.host.dir/3rdparty/exported/llhttp/llhttp.c.o
+)
+target_link_libraries(
+  submit
+  PRIVATE
+    ${CCF_DIR}/build/CMakeFiles/http_parser.host.dir/3rdparty/exported/llhttp/api.c.o
+)
+target_link_libraries(
+  submit
+  PRIVATE
+    ${CCF_DIR}/build/CMakeFiles/http_parser.host.dir/3rdparty/exported/llhttp/http.c.o
+)
