@@ -9,6 +9,7 @@ include_directories(/home/fotisk/include/)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L /home/fotisk/lib/")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--rpath=/home/fotisk/lib")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+
 add_executable(
   submit submit.cpp handle_arguments.cpp 
   handle_arguments.hpp parquet_data.cpp
