@@ -2,14 +2,14 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/nonstd.h"
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/http_consts.h"
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/http_header_map.h"
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/http_status.h"
+#include "ccf/ds/nonstd.h"
+#include "ccf/http_consts.h"
+#include "ccf/http_header_map.h"
+#include "ccf/http_status.h"
 
 #define FMT_HEADER_ONLY
-#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/format.h>
-#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/llhttp/llhttp.h>
+#include <fmt/format.h>
+#include <llhttp/llhttp.h>
 #include <map>
 #include <string>
 #include <vector>

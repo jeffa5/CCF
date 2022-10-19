@@ -14,18 +14,16 @@ add_executable(
   handle_arguments.hpp parquet_data.cpp
   stdc++.h
          parquet_data.hpp 
-         ~/fotisCCf/CCF/3rdparty/
-         ~/fotisCCf/CCF/src/
-         ~/fotisCCf/CCF/src/http/
-         ~/fotisCCf/CCF/include/
 )
 
-set(CCF_DIR "/home/fotisk/fotisCCf/CCF")
+set(CCF_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
 include(${CCF_DIR}/cmake/tools.cmake)
 include(${CCF_DIR}/cmake/crypto.cmake)
 
-# target_compile_options(submit PUBLIC -stdlib=libc++)
+include_directories(${CCF_DIR}/include)
+include_directories(${CCF_DIR}/3rdparty/exported)
+include_directories(${CCF_DIR}/src)
 
 target_link_libraries(submit PRIVATE arrow)
 target_link_libraries(submit PRIVATE parquet)

@@ -2,12 +2,12 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/json.h"
+#include "ccf/ds/json.h"
 
 #include <array>
 #include <span>
 #define FMT_HEADER_ONLY
-#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/format.h>
+#include <fmt/format.h>
 
 namespace crypto
 {

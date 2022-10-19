@@ -2,14 +2,14 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/logger.h"
-#include "/home/fotisk/fotisCCf/CCF/src/ds/messaging.h"
-#include "/home/fotisk/fotisCCf/CCF/src/ds/ring_buffer.h"
-#include "/home/fotisk/fotisCCf/CCF/src/ds/thread_messaging.h"
-#include "/home/fotisk/fotisCCf/CCF/src/enclave/endpoint.h"
-#include "/home/fotisk/fotisCCf/CCF/src/tls/context.h"
-#include "/home/fotisk/fotisCCf/CCF/src/tls/msg_types.h"
-#include "/home/fotisk/fotisCCf/CCF/src/tls/tls.h"
+#include "ccf/ds/logger.h"
+#include "ds/messaging.h"
+#include "ds/ring_buffer.h"
+#include "ds/thread_messaging.h"
+#include "enclave/endpoint.h"
+#include "tls/context.h"
+#include "tls/msg_types.h"
+#include "tls/tls.h"
 
 #include <exception>
 

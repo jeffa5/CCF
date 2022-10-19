@@ -2,9 +2,9 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/key_pair.h"
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/openssl_wrappers.h"
-#include "/home/fotisk/fotisCCf/CCF/src/tls/ca.h"
+#include "crypto/openssl/key_pair.h"
+#include "crypto/openssl/openssl_wrappers.h"
+#include "tls/ca.h"
 
 #include <cstring>
 #include <memory>

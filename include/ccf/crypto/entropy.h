@@ -2,7 +2,7 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/pal/hardware_info.h"
+#include "ccf/pal/hardware_info.h"
 
 #include <cassert>
 #include <cstdint>
@@ -24,7 +24,7 @@
 // number. This number is based on a binomial probability argument: given
 // the design margins of the DRNG, the odds of ten failures in a row are
 // astronomically small and would in fact be an indication of a larger CPU
-// issue.`
+// issue.`cmake
 #define RDRAND_RETRIES 10
 
 namespace crypto

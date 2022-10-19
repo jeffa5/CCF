@@ -2,7 +2,7 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/pal/mem.h"
+#include "ccf/pal/mem.h"
 #include "ring_buffer_types.h"
 
 #include <cstring>

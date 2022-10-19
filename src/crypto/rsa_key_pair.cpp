@@ -3,7 +3,7 @@
 
 #include "openssl/rsa_key_pair.h"
 
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/rsa_key_pair.h"
+#include "crypto/openssl/rsa_key_pair.h"
 
 namespace crypto
 {

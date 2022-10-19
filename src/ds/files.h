@@ -2,19 +2,19 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/nlohmann/json.hpp>
 #include <cstring>
 #include <fstream>
 #include <glob.h>
 #include <iostream>
+#include <nlohmann/json.hpp>
 #include <optional>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #define FMT_HEADER_ONLY
-#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/format.h>
-#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/ostream.h>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 namespace files
 {

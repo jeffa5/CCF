@@ -2,9 +2,9 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/key_pair.h"
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/pem.h"
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/public_key.h"
+#include "ccf/crypto/key_pair.h"
+#include "ccf/crypto/pem.h"
+#include "ccf/crypto/public_key.h"
 
 #include <chrono>
 
