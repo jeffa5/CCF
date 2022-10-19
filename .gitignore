@@ -41,4 +41,3 @@ perf-system/submitter/*.pem
 *.parquet
 perf-system/analyzer/*.png
 perf-system/analyzer/*.txt
-perf-system/submitter/bin/*
