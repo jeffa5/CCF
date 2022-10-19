@@ -8,7 +8,7 @@
 #include "ds/files.h"
 #include "handle_arguments.hpp"
 #include "parquet_data.hpp"
-#include "stdc++.h"
+#include "stdcpp.h"
 
 #include <arrow/api.h>
 #include <arrow/array/array_binary.h>
