@@ -24,7 +24,7 @@
 // number. This number is based on a binomial probability argument: given
 // the design margins of the DRNG, the odds of ten failures in a row are
 // astronomically small and would in fact be an indication of a larger CPU
-// issue.`cmake
+// issue.`
 #define RDRAND_RETRIES 10
 
 namespace crypto
