@@ -17,7 +17,7 @@ import pandas as pd  # type: ignore
 import fastparquet as fp  # type: ignore
 
 
-async def read(certificates, file_names, duration):
+async def read(certificates, file_names, duration, server_address):
     """
     Read the dataframes and call requests submission
     """
@@ -28,44 +28,77 @@ async def read(certificates, file_names, duration):
     sslcontext = ssl.create_default_context(cafile=certificates[0])
     sslcontext.load_cert_chain(certificates[1], certificates[2])
 
+    # formalize the server_address
+    if not server_address.startswith("http"):
+        server_address = "https://" + server_address
+
+    req_details = []
+    req_headers = []
+    req_data = []
+
+    print("Starting Formalizing Data")
+
+    # create the requests
+    for i, req_row in req_df.iloc[:].iterrows():
+        req = req_row["request"].split("\r\n")
+        req_details.append(req[0].split(" "))
+        req_headers.append({x.split(":")[0]: x.split(":")[1] for x in req[1:-2]})
+        if req_details[i][0] == "GET":
+            req_data.append("")
+        else:
+            req_data.append(req[-1])
+
+    print("Finished Formalizing Data")
+
     print("Starting Submission")
 
     if duration > 0:
-        end_time = time.time() + (duration)
+        duration_end_time = time.time() + (duration)
         run_loop_once = False
         duration_run = True
     else:
-        end_time = -1
+        duration_end_time = -1
         run_loop_once = True
         duration_run = False
 
-    while (end_time > 0 and duration_run) or (end_time < 0 and run_loop_once):
+    while (duration_end_time > 0 and duration_run) or (
+        duration_end_time < 0 and run_loop_once
+    ):
         last_index = len(df_sends.index)
         async with aiohttp.ClientSession() as session:
-            for i, req_row in req_df.iloc[:].iterrows():
-                req = req_row["request"].split("$")
-                if req[0] == "POST":
-                    header = {req[4].split(":")[0]: req[4].split(":")[1]}
+            for i in range(len(req_details)):
+                if req_details[i][0] == "POST":
                     df_sends.loc[i + last_index] = [i + last_index, time.time()]
                     async with session.post(
-                        req[1] + req[2], data=req[6], headers=header, ssl=sslcontext
+                        server_address + req_details[i][1],
+                        data=req_data[i],
+                        headers=req_headers[i],
+                        ssl=sslcontext,
                     ) as resp:
                         end_time = time.time()
                         write_response(resp, df_responses, end_time, i, last_index)
 
-                elif req[0] == "GET":
+                elif req_details[i][0] == "GET":
                     df_sends.loc[i + last_index] = [i + last_index, time.time()]
-                    async with session.get(req[1] + req[2], ssl=sslcontext) as resp:
+                    async with session.get(
+                        server_address + req_details[i][1],
+                        headers=req_headers[i],
+                        ssl=sslcontext,
+                    ) as resp:
                         end_time = time.time()
                         write_response(resp, df_responses, end_time, i, last_index)
 
-                elif req[0] == "DELETE":
+                elif req_details[i][0] == "DELETE":
                     df_sends.loc[i + last_index] = [i + last_index, time.time()]
-                    async with session.delete(req[1] + req[2], ssl=sslcontext) as resp:
+                    async with session.delete(
+                        server_address + req_details[i][1],
+                        headers=req_headers[i],
+                        ssl=sslcontext,
+                    ) as resp:
                         end_time = time.time()
                         write_response(resp, df_responses, end_time, i, last_index)
 
-                if time.time() > end_time and not run_loop_once:
+                if time.time() > duration_end_time and not run_loop_once:
                     duration_run = False
                     break
             run_loop_once = False
@@ -100,6 +133,7 @@ def main():
     arg_gen_file = "../generator/requests.parquet"
     arg_sends_file = "./sends.parquet"
     arg_response_file = "./responses.parquet"
+    arg_server_address = "127.0.0.1:8000"
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-ca",
@@ -137,6 +171,14 @@ def main():
         type=str,
     )
 
+    parser.add_argument(
+        "-sa",
+        "--server_address",
+        help="The address of the server to submit the requests\
+            default is set to `127.0.0.1:8000`",
+        type=str,
+    )
+
     args = parser.parse_args()
 
     asyncio.run(
@@ -148,6 +190,7 @@ def main():
                 args.response_file or arg_response_file,
             ],
             args.duration or -1,
+            args.server_address or arg_server_address,
         )
     )
     print("Finished Submission")
