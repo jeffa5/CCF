@@ -2,8 +2,8 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/verifier.h"
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/openssl_wrappers.h"
+#include "ccf/crypto/verifier.h"
+#include "crypto/openssl/openssl_wrappers.h"
 
 #include <chrono>
 #include <openssl/x509.h>

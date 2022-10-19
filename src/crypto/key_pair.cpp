@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the Apache 2.0 License.
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/key_pair.h"
+#include "ccf/crypto/key_pair.h"
 
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/key_pair.h"
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/openssl/public_key.h"
+#include "openssl/key_pair.h"
+#include "openssl/public_key.h"
 
 #include <cstring>
 #include <iomanip>

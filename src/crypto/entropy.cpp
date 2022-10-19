@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the Apache 2.0 License.
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/entropy.h"
+#include "ccf/crypto/entropy.h"
 
 #include "openssl/entropy.h"
 

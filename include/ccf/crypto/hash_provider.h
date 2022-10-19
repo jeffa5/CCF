@@ -2,9 +2,9 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/hash_bytes.h"
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/md_type.h"
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/sha256_hash.h"
+#include "ccf/crypto/hash_bytes.h"
+#include "ccf/crypto/md_type.h"
+#include "ccf/crypto/sha256_hash.h"
 
 #include <array>
 #include <cstdint>

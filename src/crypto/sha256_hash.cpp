@@ -1,10 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the Apache 2.0 License.
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/sha256_hash.h"
+#include "ccf/crypto/sha256_hash.h"
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/hex.h"
-#include "/home/fotisk/fotisCCf/CCF/src/crypto/hash.cpp"
+#include "ccf/ds/hex.h"
 
 namespace crypto
 {

@@ -2,7 +2,7 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/hash_provider.h"
+#include "ccf/crypto/hash_provider.h"
 #include "openssl_wrappers.h"
 
 #include <openssl/evp.h>
@@ -10,7 +10,7 @@
 #include <openssl/sha.h>
 
 #define FMT_HEADER_ONLY
-#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/format.h>
+#include <fmt/format.h>
 
 namespace crypto
 {

@@ -3,9 +3,9 @@
 #pragma once
 
 #define FMT_HEADER_ONLY
-#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/format.h>
-#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/ostream.h>
-#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/std.h>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+#include <fmt/std.h>
 #include <limits>
 #include <map>
 #include <thread>

@@ -2,8 +2,8 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/rsa_key_pair.h"
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/crypto/symmetric_key.h"
+#include "ccf/crypto/rsa_key_pair.h"
+#include "ccf/crypto/symmetric_key.h"
 
 #include <cstddef>
 #include <cstdint>

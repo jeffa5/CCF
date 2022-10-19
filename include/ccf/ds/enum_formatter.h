@@ -3,7 +3,7 @@
 #pragma once
 
 #define FMT_HEADER_ONLY
-#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/format.h>
+#include <fmt/format.h>
 
 /**
  * Generic formatter for scoped enums.

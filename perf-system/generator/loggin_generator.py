@@ -18,8 +18,9 @@ for i in range(10200):
     MYPATH = "/app/log/private"
     DATA = '{"id": 45, "msg": "Logged to private table"}'
 
-    create_post(MYHOST, MYPATH, MYTYPE, DATA)
-for i in range(500000):
+#     create_post(MYHOST, MYPATH, MYTYPE, DATA)
+for i in range(13):
+
     MYTYPE = "HTTP/1.1"
     MYPATH = "/app/log/private?id=45"
     # DATA = '{"id": ' + str(i) + ', "msg": "Logged to private table"}'

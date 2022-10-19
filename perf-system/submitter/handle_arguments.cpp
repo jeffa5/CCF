@@ -3,7 +3,7 @@
 
 #include "handle_arguments.hpp"
 
-#include "/home/fotisk/fotisCCf/CCF/perf-system/submitter/stdc++.h"
+#include "stdcpp.h"
 
 #include <iostream>
 

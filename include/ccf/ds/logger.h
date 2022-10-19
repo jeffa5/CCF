@@ -2,14 +2,14 @@
 // Licensed under the Apache 2.0 License.
 #pragma once
 
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/enum_formatter.h"
-#include "/home/fotisk/fotisCCf/CCF/include/ccf/ds/thread_ids.h"
+#include "ccf/ds/enum_formatter.h"
+#include "ccf/ds/thread_ids.h"
 
 #define FMT_HEADER_ONLY
-#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/chrono.h>
-#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/fmt/format.h>
-#include </home/fotisk/fotisCCf/CCF/3rdparty/exported/nlohmann/json.hpp>
+#include <fmt/chrono.h>
+#include <fmt/format.h>
 #include <iostream>
+#include <nlohmann/json.hpp>
 #include <optional>
 #include <sstream>
 #include <type_traits>
