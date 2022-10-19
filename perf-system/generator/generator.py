@@ -23,7 +23,7 @@ def fill_df(host, req_path, req_type, req_verb, req_iters, data):
     # entering the private file paths as metadata in the start of parquet
 
     print("Starting generation of requests")
-    for request in range(req_iters):
+    for _ in range(req_iters):
         if req_verb == "POST":
             create_post(host, req_path, req_type, data)
 

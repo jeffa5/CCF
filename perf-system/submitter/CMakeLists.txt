@@ -12,8 +12,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 
 add_executable(
-  submit submit.cpp handle_arguments.cpp handle_arguments.hpp parquet_data.cpp
-         stdcpp.h parquet_data.hpp
+  submit submit.cpp handle_arguments.cpp handle_arguments.hpp stdcpp.h
+         parquet_data.hpp
 )
 
 set(CCF_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../..)

@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the Apache 2.0 License.
-from generator import *
-from generator import create_parquet
+from generator import create_parquet, create_post, create_get
 
 MYHOST = "127.0.0.1:8000"
 

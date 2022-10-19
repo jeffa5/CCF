@@ -10,7 +10,7 @@ import pandas as pd  # type: ignore
 # pylint: disable=import-error
 from prettytable import PrettyTable  # type: ignore
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # type: ignore
 
 
 def make_analysis(send_file, response_file):

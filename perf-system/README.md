@@ -76,7 +76,7 @@ You can provide certification files or configure import/export files by replacin
 - `-k`: Followed by the path to the private key file
 - `-ca`: Followed by the path to the specified certificate file to verify the peer
 - `-gf`: Followed by the path to the file that contains the generated requests. Default file `../generator/requests.parquet`
-- `-sf`: Followed by the path to the parquet file to store submission information  for the requests that have been submitted. Default file `./cpp_sends.parquet`.
+- `-sf`: Followed by the path to the parquet file to store submission information for the requests that have been submitted. Default file `./cpp_sends.parquet`.
 - `-rf`: Followed by the path to the parquet file to store the responses from the requests that have been submitted. Default file `./cpp_responses.parquet`.
 - `-pipeline`: The existence of this option will force the submitter to use HTTP/1.1 pipelining.
 - `-sa`: Followed by the server address (`host:port`) to submit the requests. Default server address `127.0.0.1:8000`
