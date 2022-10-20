@@ -34,13 +34,13 @@ crypto::Pem key = {};
 std::string key_id = "Invalid";
 std::shared_ptr<tls::Cert> tls_cert = nullptr;
 
-void readParquetFile(string generatorFilename, ParquetData& data_handler)
+void readParquetFile(string generator_filename, ParquetData& data_handler)
 {
   arrow::Status st;
   arrow::MemoryPool* pool = arrow::default_memory_pool();
   arrow::fs::LocalFileSystem file_system;
   std::shared_ptr<arrow::io::RandomAccessFile> input =
-    file_system.OpenInputFile(generatorFilename).ValueOrDie();
+    file_system.OpenInputFile(generator_filename).ValueOrDie();
 
   // Open Parquet file reader
   std::unique_ptr<parquet::arrow::FileReader> arrow_reader;
@@ -222,9 +222,16 @@ int main(int argc, char** argv)
   ParquetData data_handler;
   std::vector<string> certificates = {args.cert, args.key, args.rootCa};
 
-  readParquetFile(args.generatorFilename, data_handler);
+  readParquetFile(args.generator_filename, data_handler);
+  std::string server_address = args.server_address;
 
-  std::string server_address = "127.0.0.1:8000";
+  // Keep only the host and port removing any https:// characters
+  std::string separator = "//";
+  auto exists_index = server_address.find(separator);
+  if (exists_index != std::string::npos)
+  {
+    server_address = server_address.substr(exists_index + separator.length());
+  }
 
   int max_block_write = 1000; // Threshold for maximum pending writes
 
@@ -296,7 +303,7 @@ int main(int argc, char** argv)
   std::cout << "Finished Request Submission" << endl;
 
   cout << "Start storing results" << endl;
-  writeSendParquetFile(args.sendFilename, data_handler);
-  writeResponseParquetFile(args.responseFilename, data_handler);
+  writeSendParquetFile(args.send_filename, data_handler);
+  writeResponseParquetFile(args.response_filename, data_handler);
   cout << "Finished storing results" << endl;
 }

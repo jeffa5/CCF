@@ -11,9 +11,10 @@ public:
   std::string cert;
   std::string key;
   std::string rootCa;
-  std::string sendFilename = "./cpp_send.parquet";
-  std::string responseFilename = "./cpp_respond.parquet";
-  std::string generatorFilename = "../generator/requests.parquet";
+  std::string server_address = "127.0.0.1:8000";
+  std::string send_filename = "./cpp_send.parquet";
+  std::string response_filename = "./cpp_respond.parquet";
+  std::string generator_filename = "../generator/requests.parquet";
   bool isPipeline = false;
   int duration = -1;
   ArgumentParser();
