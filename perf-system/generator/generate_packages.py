@@ -2,7 +2,7 @@
 # Licensed under the Apache 2.0 License.
 
 import argparse
-from generator import *
+import generator
 
 
 def main():
@@ -62,7 +62,7 @@ def main():
 
     args = parser.parse_args()
 
-    fill_df(
+    generator.fill_df(
         args.host or arg_host,
         args.path or arg_path,
         args.type or arg_type,
@@ -73,7 +73,7 @@ def main():
     # create_post("https://127.0.0.1:8000", "/app/log/private", "HTTP/1.1", 30)
     # create_get("https://127.0.0.1:8000", "/app/log/private?id=1", "HTTP/1.1", 20)
 
-    create_parquet(args.parquet_filename or arg_parquet_filename)
+    generator.create_parquet(args.parquet_filename or arg_parquet_filename)
 
 
 if __name__ == "__main__":

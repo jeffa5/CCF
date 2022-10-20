@@ -10,20 +10,13 @@
 class ParquetData
 {
 public:
+  ParquetData() {}
+
   std::vector<std::string> IDS;
   std::vector<std::string> REQUEST;
-  std::vector<std::string> REQ_VERB;
-  std::vector<std::string> REQ_HOST;
-  std::vector<std::string> REQ_PATH;
-  std::vector<std::string> REQ_TYPE;
-  std::vector<std::string> REQ_HEADER;
-  std::vector<std::string> REQ_LENGTH;
-  std::vector<std::string> REQ_DATA;
   std::vector<std::string> RAW_RESPONSE;
   std::vector<double> SEND_TIME;
   std::vector<double> RESPONSE_TIME;
-
-  ParquetData();
 };
 
 #endif
