@@ -136,10 +136,11 @@ def write_response(resp, df_responses, end_time, i, last_index):
     df_responses.loc[i + last_index] = [
         i + last_index,
         end_time,
-        resp.url.scheme
-        + str(resp.http_version)
+        str(resp.http_version)
         + " "
         + str(resp.status_code)
+        + " "
+        + resp.reason_phrase
         + "\n"
         + str(resp.headers),
     ]
