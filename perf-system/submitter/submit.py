@@ -8,25 +8,23 @@ import asyncio
 import time
 import ssl
 import argparse
+from loguru import logger
 
 # pylint: disable=import-error
-import aiohttp  # type: ignore
+import httpx
 import pandas as pd  # type: ignore
 
 # pylint: disable=import-error
 import fastparquet as fp  # type: ignore
 
 
-async def read(certificates, file_names, duration, server_address):
+async def read(certificates, file_names, duration, server_address, http2: bool):
     """
     Read the dataframes and call requests submission
     """
     req_df = pd.read_parquet(file_names[0], engine="fastparquet")
     df_sends = pd.DataFrame(columns=["messageID", "sendTime"])
     df_responses = pd.DataFrame(columns=["messageID", "receiveTime", "rawResponse"])
-
-    sslcontext = ssl.create_default_context(cafile=certificates[0])
-    sslcontext.load_cert_chain(certificates[1], certificates[2])
 
     # formalize the server_address
     if not server_address.startswith("http"):
@@ -65,38 +63,62 @@ async def read(certificates, file_names, duration, server_address):
         duration_end_time < 0 and run_loop_once
     ):
         last_index = len(df_sends.index)
-        async with aiohttp.ClientSession() as session:
+        cacert = certificates[0]
+        client_cert = (certificates[1], certificates[2])
+        async with httpx.AsyncClient(
+            http2=http2, verify=cacert, cert=client_cert
+        ) as client:
             for i in range(len(req_details)):
-                if req_details[i][0] == "POST":
-                    df_sends.loc[i + last_index] = [i + last_index, time.time()]
-                    async with session.post(
-                        server_address + req_details[i][1],
-                        data=req_data[i],
-                        headers=req_headers[i],
-                        ssl=sslcontext,
-                    ) as resp:
-                        end_time = time.time()
-                        write_response(resp, df_responses, end_time, i, last_index)
+                method = req_details[i][0]
+                path = req_details[i][1]
+                address = server_address + path
+                headers = req_headers[i]
 
-                elif req_details[i][0] == "GET":
+                if method == "POST":
+                    data = req_data[i]
+                    logger.debug(
+                        "sending post request to {} data={} headers={}",
+                        address,
+                        data,
+                        headers,
+                    )
                     df_sends.loc[i + last_index] = [i + last_index, time.time()]
-                    async with session.get(
-                        server_address + req_details[i][1],
-                        headers=req_headers[i],
-                        ssl=sslcontext,
-                    ) as resp:
-                        end_time = time.time()
-                        write_response(resp, df_responses, end_time, i, last_index)
+                    resp = await client.post(
+                        address,
+                        data=data,
+                        headers=headers,
+                    )
+                    end_time = time.time()
+                    logger.debug(
+                        "got response from post request to {}: status={}",
+                        address,
+                        resp.status_code,
+                    )
+                    write_response(resp, df_responses, end_time, i, last_index)
 
-                elif req_details[i][0] == "DELETE":
+                elif method == "GET":
+                    logger.debug(
+                        "sending get request to {} headers={}", address, headers
+                    )
                     df_sends.loc[i + last_index] = [i + last_index, time.time()]
-                    async with session.delete(
-                        server_address + req_details[i][1],
-                        headers=req_headers[i],
-                        ssl=sslcontext,
-                    ) as resp:
-                        end_time = time.time()
-                        write_response(resp, df_responses, end_time, i, last_index)
+                    resp = await client.get(
+                        address,
+                        headers=headers,
+                    )
+                    end_time = time.time()
+                    write_response(resp, df_responses, end_time, i, last_index)
+
+                elif method == "DELETE":
+                    logger.debug(
+                        "sending delete request to {} headers={}", address, headers
+                    )
+                    df_sends.loc[i + last_index] = [i + last_index, time.time()]
+                    resp = await client.delete(
+                        address,
+                        headers=headers,
+                    )
+                    end_time = time.time()
+                    write_response(resp, df_responses, end_time, i, last_index)
 
                 if time.time() > duration_end_time and not run_loop_once:
                     duration_run = False
@@ -115,14 +137,11 @@ def write_response(resp, df_responses, end_time, i, last_index):
         i + last_index,
         end_time,
         resp.url.scheme
-        + str(resp.version.major)
-        + str(resp.version.minor)
+        + str(resp.http_version)
         + " "
-        + str(resp.status)
-        + " "
-        + resp.reason
+        + str(resp.status_code)
         + "\n"
-        + str(resp.raw_headers),
+        + str(resp.headers),
     ]
 
 
@@ -179,6 +198,13 @@ def main():
         type=str,
     )
 
+    parser.add_argument(
+        "--http2",
+        action="store_true",
+        help="The address of the server to submit the requests\
+            default is set to `127.0.0.1:8000`",
+    )
+
     args = parser.parse_args()
 
     asyncio.run(
@@ -191,6 +217,7 @@ def main():
             ],
             args.duration or -1,
             args.server_address or arg_server_address,
+            args.http2,
         )
     )
     print("Finished Submission")
