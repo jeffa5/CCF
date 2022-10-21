@@ -99,6 +99,7 @@ When running the submitter you have the following options to configure the submi
 - `-sf, --send_file`: Name of the parquet file to store the requests that have been submitted. Default file `./sends.parquet`.
 - `-rf, --response_file`: Name of the parquet file to store the responses from the requests that have been submitted. Default file `./responses.parquet`.
 - `-sa, --server_address` The address of the server to submit the requests default is set to `127.0.0.1:8000`
+- `--http2`: Set the client to use http2 requests
 
 When the submitter is executed successfully, there will be two .parquet files generated in this directory.
 
