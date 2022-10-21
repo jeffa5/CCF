@@ -10,7 +10,7 @@ import pandas as pd  # type: ignore
 import fastparquet as fp  # type: ignore
 
 REQUEST_CONTENT_TYPE = "content-type: application/json"
-REQUEST_LENGTH_TEXT = "content-length: "
+REQUEST_LENGTH_TEXT = "content-length:"
 
 
 def fill_df(df, host, req_path, req_type, req_verb, req_iters, data):
