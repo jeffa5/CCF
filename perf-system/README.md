@@ -5,7 +5,7 @@ _Generator_
 _Submitter_
 _Analysis_
 
-In order to run the components you need python3 and run each component selectively. The folder contatining each these components is the **CCF/perf-system**
+In order to run the components you need python3 and run each component selectively. The folder containing each these components is the **CCF/perf-system**
 
 The required packages are included inside the the requirements.txt and can be installed running the following command from the **CCF/perf-system** directory
 
@@ -26,7 +26,7 @@ python3 generator.py
 By default, the generator will create a .parquet file, which is necessary for the following component, using the configurations provided. To provide another configuration file please use the following options:
 
 - `-hs, --host`: The main host to submit the request. Default `http://localhost:8000`
-- `-p, --path`: The realtive path to submit the request. Default `app/log/private`
+- `-p, --path`: The relative path to submit the request. Default `app/log/private`
 - `-t, --type`: The type of the HTTP request (Only HTTP/1.1 which is the default is supported for now)
 - `-vr, --verb`: The request action. Default `POST` (Only `POST` and `GET` are supported for now)
 - `-r, --rows`: The number of requests to send. Default `16`
@@ -70,7 +70,7 @@ cd ..
 ./build/submit -manual_configurations
 ```
 
-You can provide certification files or configure import/export files by replacing `-manual_configurations` in the latest command with one or more of the following options, providing after each option the corresponsing argument (where necessary).
+You can provide certification files or configure import/export files by replacing `-manual_configurations` in the latest command with one or more of the following options, providing after each option the corresponding argument (where necessary).
 
 - `-c`: Followed by the path to the certificate file
 - `-k`: Followed by the path to the private key file
@@ -83,7 +83,7 @@ You can provide certification files or configure import/export files by replacin
 
 ### Python
 
-To run the submitter writtern in **Python** you need to run from the current directory the following command
+To run the submitter written in **Python** you need to run from the current directory the following command
 
 ```sh
 python3 submitter.py
@@ -105,7 +105,7 @@ When the submitter is executed successfully, there will be two .parquet files ge
 
 ## Analyzer
 
-The **CCF/perf-system/analyzer** directory, contatins the last component which is used to produce some metrics based on the submitted data of the previous component. For this component you need to run the following command from the current directory:
+The **CCF/perf-system/analyzer** directory, contains the last component which is used to produce some metrics based on the submitted data of the previous component. For this component you need to run the following command from the current directory:
 
 ```sh
 python3 analysis.py
@@ -116,4 +116,4 @@ When running the analyzer you have the following options to specify the exported
 - `-sf, --send_file`: Name of the parquet file for the requests that have been submitted. Default file `../submitter/cpp_send.parquet`.
 - `-rf, --response_file`: Name of the parquet file for the responses from the requests that have been submitted. Default file `../submitter/cpp_respond.parquet`.
 
-After the execution, in the command prompt will be written two tables with some metrics and in the current directory there will be exported three images plotting the latency accros time or based on the id and the throughput of the requests.
+After the execution, in the command prompt will be written two tables with some metrics and in the current directory there will be exported three images plotting the latency across time or based on the id and the throughput of the requests.
