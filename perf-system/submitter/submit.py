@@ -34,7 +34,7 @@ async def read(certificates, file_names, duration, server_address, http2: bool):
     req_headers = []
     req_data = []
 
-    print("Starting Formalizing Data")
+    logger.info("Starting Formalizing Data")
 
     # create the requests
     for i, req_row in req_df.iloc[:].iterrows():
@@ -46,9 +46,9 @@ async def read(certificates, file_names, duration, server_address, http2: bool):
         else:
             req_data.append(req[-1])
 
-    print("Finished Formalizing Data")
+    logger.info("Finished Formalizing Data")
 
-    print("Starting Submission")
+    logger.info("Starting Submission")
 
     if duration > 0:
         duration_end_time = time.time() + (duration)
@@ -220,7 +220,7 @@ def main():
             args.http2,
         )
     )
-    print("Finished Submission")
+    logger.info("Finished Submission")
 
 
 if __name__ == "__main__":

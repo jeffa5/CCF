@@ -5,6 +5,7 @@ Generate requests
 """
 
 import pandas as pd  # type: ignore
+from loguru import logger
 
 # pylint: disable=import-error
 import fastparquet as fp  # type: ignore
@@ -20,7 +21,7 @@ def fill_df(df, host, req_path, req_type, req_verb, req_iters, data):
     """
     # entering the private file paths as metadata in the start of parquet
 
-    print("Starting generation of requests")
+    logger.info("Starting generation of requests")
     for _ in range(req_iters):
         if req_verb == "POST":
             create_post(df, host, req_path, req_type, data)
@@ -31,7 +32,7 @@ def fill_df(df, host, req_path, req_type, req_verb, req_iters, data):
         elif req_verb == "DELETE":
             create_delete(df, host, req_path, req_type)
 
-    print("Finished generation of requests")
+    logger.info("Finished generation of requests")
 
 
 def create_get(df, host, req_path, req_type):
@@ -102,9 +103,9 @@ def create_parquet(df, parquet_filename):
     Takes the dataframe data and stores them
     in a parquet file in the current directory
     """
-    print("Start writing requests to " + parquet_filename)
+    logger.info("Start writing requests to " + parquet_filename)
     fp.write(parquet_filename, df)
-    print("Finished writing requests to " + parquet_filename)
+    logger.info("Finished writing requests to " + parquet_filename)
 
 
 def new_df() -> pd.DataFrame:
