@@ -12,10 +12,8 @@ import fastparquet as fp  # type: ignore
 REQUEST_CONTENT_TYPE = "content-type: application/json"
 REQUEST_LENGTH_TEXT = "content-length: "
 
-df = pd.DataFrame(columns=["messageID", "request"])
 
-
-def fill_df(host, req_path, req_type, req_verb, req_iters, data):
+def fill_df(df, host, req_path, req_type, req_verb, req_iters, data):
     """
     Creates a dataframe with the data
     required for the requests
@@ -25,18 +23,18 @@ def fill_df(host, req_path, req_type, req_verb, req_iters, data):
     print("Starting generation of requests")
     for _ in range(req_iters):
         if req_verb == "POST":
-            create_post(host, req_path, req_type, data)
+            create_post(df, host, req_path, req_type, data)
 
         elif req_verb == "GET":
-            create_get(host, req_path, req_type)
+            create_get(df, host, req_path, req_type)
 
         elif req_verb == "DELETE":
-            create_delete(host, req_path, req_type)
+            create_delete(df, host, req_path, req_type)
 
     print("Finished generation of requests")
 
 
-def create_get(host, req_path, req_type):
+def create_get(df, host, req_path, req_type):
     """
     Generate get queries
     """
@@ -56,7 +54,7 @@ def create_get(host, req_path, req_type):
     ]
 
 
-def create_post(host, req_path, req_type, request_message):
+def create_post(df, host, req_path, req_type, request_message):
     """
     Generate post queries
     """
@@ -80,7 +78,7 @@ def create_post(host, req_path, req_type, request_message):
     ]
 
 
-def create_delete(host, req_path, req_type):
+def create_delete(df, host, req_path, req_type):
     """
     Generate delete queries
     """
@@ -99,7 +97,7 @@ def create_delete(host, req_path, req_type):
     ]
 
 
-def create_parquet(parquet_filename):
+def create_parquet(df, parquet_filename):
     """
     Takes the dataframe data and stores them
     in a parquet file in the current directory
@@ -107,3 +105,7 @@ def create_parquet(parquet_filename):
     print("Start writing requests to " + parquet_filename)
     fp.write(parquet_filename, df)
     print("Finished writing requests to " + parquet_filename)
+
+
+def new_df() -> pd.DataFrame:
+    return pd.DataFrame(columns=["messageID", "request"])
