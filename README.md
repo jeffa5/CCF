@@ -1,5 +1,7 @@
 # The Confidential Consortium Framework [![Docs](https://img.shields.io/badge/Documentation-Up%20to%20date-green)](https://microsoft.github.io/CCF)
 
+**This branch is for merging PRs for LSKV testing**
+
 <img alt="ccf" align="right" src="doc/_static/ccf.svg" width="200">
 
 - Continuous Build: [![Build Status](https://dev.azure.com/MSRC-CCF/CCF/_apis/build/status/CCF%20Github%20CI?branchName=main)](https://dev.azure.com/MSRC-CCF/CCF/_build/latest?definitionId=3&branchName=main)
