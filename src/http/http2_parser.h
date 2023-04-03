@@ -387,8 +387,11 @@ namespace http2
 
       if (stream_data->outgoing.state != StreamResponseState::Uninitialised)
       {
-        throw std::logic_error(fmt::format(
-          "Stream {} should be uninitialised to start stream", stream_id));
+        // throw std::logic_error(fmt::format(
+        //   "Stream {} should be uninitialised to start stream", stream_id));
+
+        stream_data->outgoing.state = StreamResponseState::Streaming;
+        return;
       }
 
       stream_data->outgoing.state = StreamResponseState::Streaming;

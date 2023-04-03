@@ -68,22 +68,30 @@ namespace ccf::grpc
     }
     else
     {
-      const auto message_length = impl::read_message_frame(data, size);
-      if (size != message_length)
-      {
-        throw std::logic_error(fmt::format(
-          "Error in gRPC frame: frame size is {} but messages is {} bytes",
-          size,
-          message_length));
-      }
-
       In in;
-      if (!in.ParseFromArray(data, message_length))
+      try
       {
-        throw std::logic_error(fmt::format(
-          "Error deserialising protobuf payload of type {}, size {}",
-          in.GetTypeName(),
-          size));
+        const auto message_length = impl::read_message_frame(data, size);
+        if (size != message_length)
+        {
+          throw std::logic_error(fmt::format(
+            "Error in gRPC frame: frame size is {} but messages is {} bytes",
+            size,
+            message_length));
+        }
+
+        if (!in.ParseFromArray(data, message_length))
+        {
+          throw std::logic_error(fmt::format(
+            "Error deserialising protobuf payload of type {}, size {}",
+            in.GetTypeName(),
+            size));
+        }
+      }
+      catch (const std::exception& e)
+      {
+        // Note: Client streaming!
+        LOG_FAIL_FMT("Error deserialising payload: {}", e.what());
       }
       return in;
     }
