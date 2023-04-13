@@ -1,0 +1,6 @@
+build/
+.venv_ccf_sandbox
+docker/
+!docker/sgx_deps_pin.sh
+.git/
+workspace/
