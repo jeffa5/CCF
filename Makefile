@@ -5,6 +5,8 @@ GLOBAL_INSTALL_PREFIX=/opt/ccf
 CPP_INCLUDES=$(wildcard include/ccf/**/*.cpp)
 H_INCLUDES=$(wildcard include/ccf/**/*.h)
 
+IMAGE_NAME=ghcr.io/jeffa5/ccf
+
 .PHONY: build-virtual
 build-virtual:
 	mkdir -p $(BUILD)
@@ -43,11 +45,25 @@ build-virtual-global-verbose:
 
 .PHONY: build-docker-virtual
 build-docker-virtual:
-	docker build -t mcr.microsoft.com/ccf/app/dev:lskv-virtual -f docker/app_dev . --build-arg="clang_version=15" --build-arg="platform=virtual"
+	docker build -t $(IMAGE_NAME):lskv-virtual -f docker/app_dev . --build-arg="clang_version=15" --build-arg="platform=virtual"
 
 .PHONY: build-docker-sgx
 build-docker-sgx:
-	docker build -t mcr.microsoft.com/ccf/app/dev:lskv-sgx -f docker/app_dev . --build-arg="clang_version=10" --build-arg="platform=sgx"
+	docker build -t $(IMAGE_NAME):lskv-sgx -f docker/app_dev . --build-arg="clang_version=10" --build-arg="platform=sgx"
+
+.PHONY: build-docker
+build-docker: build-docker-virtual build-docker-sgx
+
+.PHONY: push-docker-virtual
+push-docker-virtual:
+	docker push $(IMAGE_NAME):lskv-virtual
+
+.PHONY: push-docker-sgx
+push-docker-sgx:
+	docker push $(IMAGE_NAME):lskv-sgx
+
+.PHONY: push-docker
+push-docker: push-docker-sgx push-docker-virtual
 
 .PHONY: install-virtual
 install-virtual: build-virtual
