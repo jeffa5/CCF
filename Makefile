@@ -10,19 +10,19 @@ IMAGE_NAME=ghcr.io/jeffa5/ccf
 .PHONY: build-virtual
 build-virtual:
 	mkdir -p $(BUILD)
-	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=virtual -DCMAKE_INSTALL_PREFIX=$(abspath $(INSTALL_PREFIX))_virtual -DVERBOSE_LOGGING=OFF -DUNSAFE_VERSION=OFF ..
+	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=virtual -DCMAKE_INSTALL_PREFIX=$(abspath $(INSTALL_PREFIX))_virtual -DVERBOSE_LOGGING=OFF ..
 	cd $(BUILD) && ninja
 
 .PHONY: build-virtual-verbose
 build-virtual-verbose:
 	mkdir -p $(BUILD)
-	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=virtual -DCMAKE_INSTALL_PREFIX=$(abspath $(INSTALL_PREFIX))_virtual -DVERBOSE_LOGGING=ON -DUNSAFE_VERSION=ON ..
+	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=virtual -DCMAKE_INSTALL_PREFIX=$(abspath $(INSTALL_PREFIX))_virtual -DVERBOSE_LOGGING=ON ..
 	cd $(BUILD) && ninja
 
 .PHONY: build-virtual-global
 build-virtual-global:
 	mkdir -p $(BUILD)
-	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=virtual -DCMAKE_INSTALL_PREFIX=$(GLOBAL_INSTALL_PREFIX)_virtual -DVERBOSE_LOGGING=OFF -DUNSAFE_VERSION=OFF ..
+	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=virtual -DCMAKE_INSTALL_PREFIX=$(GLOBAL_INSTALL_PREFIX)_virtual -DVERBOSE_LOGGING=OFF ..
 	cd $(BUILD) && ninja
 
 .PHONY: build-sgx-global
@@ -40,7 +40,7 @@ build-snp-global:
 .PHONY: build-virtual-global-verbose
 build-virtual-global-verbose:
 	mkdir -p $(BUILD)
-	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=virtual -DCMAKE_INSTALL_PREFIX=$(GLOBAL_INSTALL_PREFIX)_virtual -DVERBOSE_LOGGING=ON -DUNSAFE_VERSION=ON ..
+	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=virtual -DCMAKE_INSTALL_PREFIX=$(GLOBAL_INSTALL_PREFIX)_virtual -DVERBOSE_LOGGING=ON ..
 	cd $(BUILD) && ninja
 
 .PHONY: build-docker-virtual
