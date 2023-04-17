@@ -4,3 +4,4 @@ docker/
 !docker/sgx_deps_pin.sh
 .git/
 workspace/
+getting_started/setup_vm/.venv_ccf_sandbox/
