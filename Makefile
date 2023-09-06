@@ -1,6 +1,5 @@
 BUILD=build
-INSTALL_PREFIX=$(BUILD)/myopt
-GLOBAL_INSTALL_PREFIX=/opt/ccf
+INSTALL_PREFIX=/opt/ccf
 
 CPP_INCLUDES=$(wildcard include/ccf/**/*.cpp)
 H_INCLUDES=$(wildcard include/ccf/**/*.h)
@@ -10,37 +9,25 @@ IMAGE_NAME=ghcr.io/jeffa5/ccf
 .PHONY: build-virtual
 build-virtual:
 	mkdir -p $(BUILD)
-	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=virtual -DCMAKE_INSTALL_PREFIX=$(abspath $(INSTALL_PREFIX))_virtual -DVERBOSE_LOGGING=OFF ..
+	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=virtual -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX)_virtual -DVERBOSE_LOGGING=OFF ..
+	cd $(BUILD) && ninja
+
+.PHONY: build-sgx
+build-sgx:
+	mkdir -p $(BUILD)
+	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=sgx -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX)_sgx -DVERBOSE_LOGGING=OFF -DUNSAFE_VERSION=OFF ..
+	cd $(BUILD) && ninja
+
+.PHONY: build-snp
+build-snp:
+	mkdir -p $(BUILD)
+	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=snp -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX)_snp -DVERBOSE_LOGGING=OFF -DUNSAFE_VERSION=OFF ..
 	cd $(BUILD) && ninja
 
 .PHONY: build-virtual-verbose
 build-virtual-verbose:
 	mkdir -p $(BUILD)
-	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=virtual -DCMAKE_INSTALL_PREFIX=$(abspath $(INSTALL_PREFIX))_virtual -DVERBOSE_LOGGING=ON ..
-	cd $(BUILD) && ninja
-
-.PHONY: build-virtual-global
-build-virtual-global:
-	mkdir -p $(BUILD)
-	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=virtual -DCMAKE_INSTALL_PREFIX=$(GLOBAL_INSTALL_PREFIX)_virtual -DVERBOSE_LOGGING=OFF ..
-	cd $(BUILD) && ninja
-
-.PHONY: build-sgx-global
-build-sgx-global:
-	mkdir -p $(BUILD)
-	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=sgx -DCMAKE_INSTALL_PREFIX=$(GLOBAL_INSTALL_PREFIX)_sgx -DVERBOSE_LOGGING=OFF -DUNSAFE_VERSION=OFF ..
-	cd $(BUILD) && ninja
-
-.PHONY: build-snp-global
-build-snp-global:
-	mkdir -p $(BUILD)
-	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=snp -DCMAKE_INSTALL_PREFIX=$(GLOBAL_INSTALL_PREFIX)_snp -DVERBOSE_LOGGING=OFF -DUNSAFE_VERSION=OFF ..
-	cd $(BUILD) && ninja
-
-.PHONY: build-virtual-global-verbose
-build-virtual-global-verbose:
-	mkdir -p $(BUILD)
-	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=virtual -DCMAKE_INSTALL_PREFIX=$(GLOBAL_INSTALL_PREFIX)_virtual -DVERBOSE_LOGGING=ON ..
+	cd $(BUILD) && cmake -GNinja -DCOMPILE_TARGET=virtual -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX)_virtual -DVERBOSE_LOGGING=ON ..
 	cd $(BUILD) && ninja
 
 .PHONY: build-docker-virtual
@@ -67,18 +54,14 @@ push-docker: push-docker-sgx push-docker-virtual
 
 .PHONY: install-virtual
 install-virtual: build-virtual
-	cd $(BUILD) && ninja install
-
-.PHONY: install-virtual-global
-install-virtual-global: build-virtual-global
 	cd $(BUILD) && sudo ninja install
 
-.PHONY: install-sgx-global
-install-sgx-global: build-sgx-global
+.PHONY: install-sgx
+install-sgx: build-sgx
 	cd $(BUILD) && sudo ninja install
 
-.PHONY: install-virtual-global-verbose
-install-virtual-global-verbose: build-virtual-global-verbose
+.PHONY: install-virtual-verbose
+install-virtual-verbose: build-virtual-verbose
 	cd $(BUILD) && sudo ninja install
 
 .PHONY: run-sandbox
