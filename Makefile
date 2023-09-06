@@ -38,8 +38,12 @@ build-docker-virtual:
 build-docker-sgx:
 	docker build -t $(IMAGE_NAME):lskv-sgx -f docker/app_dev . --build-arg="clang_version=11" --build-arg="platform=sgx"
 
+.PHONY: build-docker-snp
+build-docker-snp:
+	docker build -t $(IMAGE_NAME):lskv-snp -f docker/app_dev . --build-arg="clang_version=15" --build-arg="platform=snp"
+
 .PHONY: build-docker
-build-docker: build-docker-virtual build-docker-sgx
+build-docker: build-docker-virtual build-docker-sgx build-docker-snp
 
 .PHONY: push-docker-virtual
 push-docker-virtual:
@@ -49,8 +53,12 @@ push-docker-virtual:
 push-docker-sgx:
 	docker push $(IMAGE_NAME):lskv-sgx
 
+.PHONY: push-docker-snp
+push-docker-snp:
+	docker push $(IMAGE_NAME):lskv-snp
+
 .PHONY: push-docker
-push-docker: push-docker-sgx push-docker-virtual
+push-docker: push-docker-sgx push-docker-virtual push-docker-snp
 
 .PHONY: install-virtual
 install-virtual: build-virtual
@@ -62,6 +70,10 @@ install-sgx: build-sgx
 
 .PHONY: install-virtual-verbose
 install-virtual-verbose: build-virtual-verbose
+	cd $(BUILD) && sudo ninja install
+
+.PHONY: install-snp
+install-sgx: build-snp
 	cd $(BUILD) && sudo ninja install
 
 .PHONY: run-sandbox
