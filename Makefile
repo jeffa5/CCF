@@ -49,7 +49,7 @@ build-docker-virtual:
 
 .PHONY: build-docker-sgx
 build-docker-sgx:
-	docker build -t $(IMAGE_NAME):lskv-sgx -f docker/app_dev . --build-arg="clang_version=10" --build-arg="platform=sgx"
+	docker build -t $(IMAGE_NAME):lskv-sgx -f docker/app_dev . --build-arg="clang_version=11" --build-arg="platform=sgx"
 
 .PHONY: build-docker
 build-docker: build-docker-virtual build-docker-sgx
