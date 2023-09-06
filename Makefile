@@ -73,7 +73,7 @@ install-virtual-verbose: build-virtual-verbose
 	cd $(BUILD) && sudo ninja install
 
 .PHONY: install-snp
-install-sgx: build-snp
+install-snp: build-snp
 	cd $(BUILD) && sudo ninja install
 
 .PHONY: run-sandbox
