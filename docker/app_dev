@@ -37,4 +37,4 @@ RUN apt update \
 
 COPY . /ccf-build/
 WORKDIR /ccf-build
-RUN make install-${platform}-global && rm -rf /ccf-build
+RUN make install-${platform} && rm -rf /ccf-build
