@@ -110,7 +110,10 @@ option(SHUFFLE_SUITE "Shuffle end to end test suite" OFF)
 option(LONG_TESTS "Enable long end-to-end tests" OFF)
 option(KV_STATE_RB "Enable RBMap as underlying KV state implementation" OFF)
 if(KV_STATE_RB)
+  message(STATUS "Using RB maps")
   add_compile_definitions(KV_STATE_RB)
+else()
+  message(STATUS "Using CHAMP maps")
 endif()
 
 # This option controls whether to link virtual builds against snmalloc rather
