@@ -59,6 +59,7 @@ namespace kv::untyped
       [&w, &f, &should_continue](const KeyType& k, const VersionV& v) {
         auto write = w.find(k);
 
+        // Check whether this key has been overwritten in the write set.
         if (write == w.end())
         {
           should_continue = f(k, v.value);
@@ -227,8 +228,12 @@ namespace kv::untyped
     bool continue_past_range_to = false;
 #endif
 
+    // Check whether there are any pending writes in this transaction
+    bool write_set_empty = tx_changes.writes.empty();
+
     std::map<KeyType, ValueType> res;
-    auto g = [&res, &from, &to, continue_past_range_to](
+
+    auto g = [&res, &from, &to, &f, write_set_empty, continue_past_range_to](
                const KeyType& k, const ValueType& v) {
       if (from.has_value() && k < from.value())
       {
@@ -241,14 +246,28 @@ namespace kv::untyped
         return continue_past_range_to;
       }
 
-      res[k] = v;
+      // if there are no pending writes and we are already using a sorted map
+      // then we do not need to store the key and value in a sorted map for
+      // later iteration.
+      if (write_set_empty && KV_STATE_RB)
+      {
+        f(k, v);
+      }
+      else
+      {
+        res[k] = v;
+      }
+
       return true;
     };
     foreach_state_and_writes(g, true);
 
-    for (const auto& e : res)
+    if (!(write_set_empty && KV_STATE_RB))
     {
-      f(e.first, e.second);
+      for (const auto& e : res)
+      {
+        f(e.first, e.second);
+      }
     }
   }
 }
