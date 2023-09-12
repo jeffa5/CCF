@@ -155,6 +155,37 @@ namespace rb
     }
 
     template <class F>
+    bool range(F&& f, const std::optional<K>& from, const std::optional<K>& to) const
+    {
+      if (!empty())
+      {
+        auto& key = rootKey();
+        if (from.has_value() && &from.value() <= &key)
+        {
+          if (!left().range(std::forward<F>(f), from, to))
+          {
+            return false;
+          }
+        }
+        if (from.has_value() && &from.value() <= &key && to.has_value() && key < to.value())
+        {
+          if (!f(rootKey(), rootValue()))
+          {
+            return false;
+          }
+        }
+        if (to.has_value() && key < to.value())
+        {
+          if (!right().range(std::forward<F>(f), from, to))
+          {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    template <class F>
     bool foreach(F&& f) const
     {
       if (!empty())

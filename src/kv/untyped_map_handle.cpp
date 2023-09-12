@@ -231,9 +231,18 @@ namespace kv::untyped
     // Check whether there are any pending writes in this transaction
     bool write_set_empty = tx_changes.writes.empty();
 
+    // if there are no pending writes and we are already using a sorted map
+    // then we do not need to store the key and value in a sorted map for
+    // later iteration.
+    if (write_set_empty && KV_STATE_RB)
+    {
+      range_fast(f, from, to);
+      return;
+    }
+
     std::map<KeyType, ValueType> res;
 
-    auto g = [&res, &from, &to, &f, write_set_empty, continue_past_range_to](
+    auto g = [&res, &from, &to, &f, continue_past_range_to](
                const KeyType& k, const ValueType& v) {
       if (from.has_value() && k < from.value())
       {
@@ -246,28 +255,34 @@ namespace kv::untyped
         return continue_past_range_to;
       }
 
-      // if there are no pending writes and we are already using a sorted map
-      // then we do not need to store the key and value in a sorted map for
-      // later iteration.
-      if (write_set_empty && KV_STATE_RB)
-      {
-        f(k, v);
-      }
-      else
-      {
-        res[k] = v;
-      }
+      res[k] = v;
 
       return true;
     };
     foreach_state_and_writes(g, true);
 
-    if (!(write_set_empty && KV_STATE_RB))
+    for (const auto& e : res)
     {
-      for (const auto& e : res)
-      {
-        f(e.first, e.second);
-      }
+      f(e.first, e.second);
     }
   }
+
+#ifdef KV_STATE_RB
+  void MapHandle::range_fast(
+    const MapHandle::ElementVisitor& f,
+    const std::optional<MapHandle::KeyType>& from,
+    const std::optional<MapHandle::KeyType>& to)
+  {
+    auto g = [&from, &to, &f](const KeyType& k, const VersionV& v) {
+      f(k, v.value);
+
+      return true;
+    };
+
+    // Record a global read dependency.
+    tx_changes.read_version = tx_changes.start_version;
+
+    tx_changes.state.range(g, from, to);
+  }
+#endif
 }

@@ -44,6 +44,13 @@ namespace kv::untyped
     void foreach_state_and_writes(
       const ElementVisitorWithEarlyOut& fn, bool always_consider_writes);
 
+#ifdef KV_STATE_RB
+    void range_fast(
+      const ElementVisitor& fn,
+      const std::optional<KeyType>& from,
+      const std::optional<KeyType>& to);
+#endif
+
   public:
     MapHandle(kv::untyped::ChangeSet& cs, const std::string& map_name);
 
